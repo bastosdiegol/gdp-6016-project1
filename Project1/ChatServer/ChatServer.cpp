@@ -35,13 +35,15 @@ short ChatServer::JoinRoom(std::string name, short userID){
 		// Creates the new room
 		m_chatRooms.try_emplace(name, numRooms);
 		// Sets the User on the new room
-		m_chatRoomUsers.try_emplace(numRooms, userID);
+		RoomUserId newPair = std::make_pair(numRooms, userID);
+		m_chatRoomUsers.push_back(newPair);
 		// Return the room id
 		return numRooms;
 	}
 	else {
 		// Adds the user on the already existing room
-		m_chatRoomUsers.try_emplace(it->second, userID);
+		RoomUserId newPair = std::make_pair(it->second, userID);
+		m_chatRoomUsers.push_back(newPair);
 		// Room already exists, return ChatID
 		return it->second;
 	}

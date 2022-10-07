@@ -1,10 +1,12 @@
 #pragma once
 #include <string>
 #include <map>
+#include <vector>
 
 #include "Socket.h"
 
-typedef std::pair<std::string, SOCKET> ChatUser;
+typedef std::pair<std::string, SOCKET>	ChatUser;
+typedef std::pair<short, short>			RoomUserId;
 
 class ChatServer : public Socket {
 public:
@@ -14,8 +16,7 @@ public:
 
 	std::map<std::string, short>	m_chatRooms;	 // <ChatRoomName, ChatId>
 	std::map<short, ChatUser>		m_chatUsers;	 // <UserId, <Username, SOCKET> >
-	std::map<short, short>			m_chatRoomUsers; // <chatID, userID>
-	
+	std::vector<RoomUserId>			m_chatRoomUsers; // <chatID, userID>
 
 	void StartUp();
 	void Shutdown();
