@@ -4,7 +4,7 @@
 
 // Default Constructor
 Buffer::Buffer(size_t size) {
-	m_Buffer.resize(size);
+	m_BufferData.resize(size);
 	m_BufferSize		= size;
 	m_WriteBufferIndex	= 0;
 	m_ReadBufferIndex	= 0;
@@ -17,12 +17,12 @@ void Buffer::WriteInt32LE(size_t index, int32_t value) {
 	if ((index + 4) > m_BufferSize) {
 		// Doubles the buffer size
 		m_BufferSize *= 2;
-		m_Buffer.resize(m_BufferSize);
+		m_BufferData.resize(m_BufferSize);
 	}
-	m_Buffer[index]		= value;
-	m_Buffer[++index]	= value >> 8;
-	m_Buffer[++index]	= value >> 16;
-	m_Buffer[++index]	= value >> 24;
+	m_BufferData[index]		= value;
+	m_BufferData[++index]	= value >> 8;
+	m_BufferData[++index]	= value >> 16;
+	m_BufferData[++index]	= value >> 24;
 	m_WriteBufferIndex	= ++index;
 }
 
@@ -33,12 +33,12 @@ void Buffer::WriteInt32LE(int32_t value) {
 	if (m_BufferSize == m_WriteBufferIndex) {
 		// Doubles the buffer size
 		m_BufferSize *= 2;
-		m_Buffer.resize(m_BufferSize);
+		m_BufferData.resize(m_BufferSize);
 	}
-	m_Buffer[m_WriteBufferIndex]   = value;
-	m_Buffer[++m_WriteBufferIndex] = value >> 8;
-	m_Buffer[++m_WriteBufferIndex] = value >> 16;
-	m_Buffer[++m_WriteBufferIndex] = value >> 24;
+	m_BufferData[m_WriteBufferIndex]   = value;
+	m_BufferData[++m_WriteBufferIndex] = value >> 8;
+	m_BufferData[++m_WriteBufferIndex] = value >> 16;
+	m_BufferData[++m_WriteBufferIndex] = value >> 24;
 	m_WriteBufferIndex++;
 }
 
@@ -47,10 +47,10 @@ void Buffer::WriteInt32LE(int32_t value) {
 // Returns the value
 uint32_t Buffer::ReadUInt32LE(size_t index) {
 
-	uint32_t value = m_Buffer[index];
-	value |= m_Buffer[++index] << 8;
-	value |= m_Buffer[++index] << 16;
-	value |= m_Buffer[++index] << 24;
+	uint32_t value = m_BufferData[index];
+	value |= m_BufferData[++index] << 8;
+	value |= m_BufferData[++index] << 16;
+	value |= m_BufferData[++index] << 24;
 	m_ReadBufferIndex = ++index;
 
 	return value;
@@ -61,10 +61,10 @@ uint32_t Buffer::ReadUInt32LE(size_t index) {
 // Returns the value
 uint32_t Buffer::ReadUInt32LE() {
 
-	uint32_t value = m_Buffer[m_ReadBufferIndex];
-	m_Buffer[++m_ReadBufferIndex] = value >> 8;
-	m_Buffer[++m_ReadBufferIndex] = value >> 16;
-	m_Buffer[++m_ReadBufferIndex] = value >> 24;
+	uint32_t value = m_BufferData[m_ReadBufferIndex];
+	m_BufferData[++m_ReadBufferIndex] = value >> 8;
+	m_BufferData[++m_ReadBufferIndex] = value >> 16;
+	m_BufferData[++m_ReadBufferIndex] = value >> 24;
 	m_ReadBufferIndex++;
 
 	return value;

@@ -25,12 +25,12 @@ public:
 
 private:
 	// call m_Buffer.resize in your constructor
-	std::vector<int32_t> m_Buffer;
+	std::vector<uint8_t> m_BufferData;
 
 	// Stores the size of the buffer
 	int m_BufferSize;
 
-	// initialize these at 0
+	// Stores the index of Write and Read Operations
 	int m_WriteBufferIndex;
 	int m_ReadBufferIndex;
 };
