@@ -14,37 +14,50 @@ void ChatServer::Shutdown(){
 	Socket::Close();
 }
 
-short ChatServer::JoinServer(std::string name, SOCKET userSocket){
-	// Creates the new user Pair
-	ChatUser newUser = std::make_pair(name, userSocket);
+short ChatServer::JoinServer(std::string name, SOCKET userSocket) {
 	// Gets the number of chat users
 	short numUsers = m_chatUsers.size();
 	// Adds the new user
-	m_chatUsers.try_emplace(numUsers, newUser);
+	m_chatUsers.push_back(ChatUser{ numUsers, name, userSocket });
 	// Returns the id of the new user
 	return numUsers;
 }
 
 short ChatServer::JoinRoom(std::string name, short userID){
 	// Tries to find the Chat Room by name
-	const std::map<std::string, short>::iterator it = m_chatRooms.find(name);
+	bool isRoomFound = false;
+	short roomIndex;
+	for (int i = 0; i < m_chatRooms.size(); i++) {
+		if (m_chatRooms[i].name == name) {
+			isRoomFound = true;
+			roomIndex = i;
+		}
+	}
 	// Checks if Room with same name was found
-	if (it == m_chatRooms.end()) {
-		// Number of rooms
-		short numRooms = m_chatRooms.size();
-		// Creates the new room
-		m_chatRooms.try_emplace(name, numRooms);
-		// Sets the User on the new room
-		RoomUserId newPair = std::make_pair(numRooms, userID);
-		m_chatRoomUsers.push_back(newPair);
-		// Return the room id
-		return numRooms;
+	if (isRoomFound) {
+		// Adds the user on the already existing room
+		m_chatRooms[roomIndex].users.push_back(userID);
+		// Room already exists, return ChatID
+		return roomIndex;
 	}
 	else {
-		// Adds the user on the already existing room
-		RoomUserId newPair = std::make_pair(it->second, userID);
-		m_chatRoomUsers.push_back(newPair);
-		// Room already exists, return ChatID
-		return it->second;
+		// Number of rooms
+		roomIndex = m_chatRooms.size();
+		// Creates the new room with the current user
+		std::vector<short> users;
+		users.push_back(userID);
+		m_chatRooms.push_back(ChatRoom{ roomIndex
+										, name
+										, users });
+		// Return the room id
+		return roomIndex;
 	}
+}
+
+void ChatServer::LeaveServer(short userID)
+{
+}
+
+void ChatServer::LeaveRoom(short userID, short roomID){
+	//for(int i=0; i<)
 }
