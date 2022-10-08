@@ -77,17 +77,11 @@ void Socket::Listen(){
 	}
 }
 
-void Socket::Accept(){
+//void Socket::Accept(){}
 
-}
+//void Socket::Read(){}
 
-void Socket::Read(){
-
-}
-
-void Socket::Write(){
-
-}
+//void Socket::Write(){}
 
 void Socket::Initialize(){
 	Open();

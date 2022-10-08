@@ -17,6 +17,13 @@ struct ChatRoom {
 };
 
 class ChatServer : public Socket {
+private:
+	bool m_serverStatus;	// While True server LifeCycle should be alive
+
+	// Server main Function after StartUp();
+	void LifeCycle();	
+	// Checks if theres a new Chat User trying to connect to the server
+	void Accept();
 public:
 	fd_set					m_activeSockets;
 	fd_set					m_socketsReadyForReading;
@@ -30,7 +37,8 @@ public:
 	void StartUp();
 	void Shutdown();
 
-	// User joins the server
+	// User sends his username to the server after the the Accept()
+	// Looksup for the userSocket already registered and saves his username
 	// Returns the new UserID
 	short JoinServer(std::string name, SOCKET userSocket);
 	// User joins the room
@@ -42,5 +50,12 @@ public:
 	// User leaves the room
 	// If theres no user left removes the room
 	void LeaveRoom(short userID, short roomID);
+	// List all rooms available
+	// Returns a string containing all information available
+	std::string ListRooms();
+	// Sends a message submited by a user to all users of the same channel
+	void BroadcastMessage(short roomID, std::string message);
+	// Sends a message to a user
+	void SendMessage(std::string message, SOCKET userID);
 };
 

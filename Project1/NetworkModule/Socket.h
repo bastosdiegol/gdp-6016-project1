@@ -22,9 +22,7 @@ public:
 	// Closes the Socket
 	void Close();
 
-
-
-private:
+protected:
 	char*				m_port;				// Port (in case DEFAULT_PORT is overwritten)
 	int					m_err;				// Functions Results will be store here - Error Check
 	WSADATA				m_wsaData;
@@ -36,8 +34,8 @@ private:
 	void Open();
 	void Bind();
 	void Listen();
-	void Accept();
-	void Read();
-	void Write();
+	virtual void Accept()	= 0;
+	virtual void Read()		= 0;
+	virtual void Write()	= 0;
 };
 

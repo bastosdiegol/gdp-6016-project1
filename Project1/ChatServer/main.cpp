@@ -1,4 +1,5 @@
 #include "ChatServer.h"
+#include <iostream>
 
 int main(int argc, char** argv) {
 	ChatServer cs;
@@ -31,11 +32,15 @@ int main(int argc, char** argv) {
 
 	//cs.JoinRoom("Room B", 1);
 
+	std::cout << cs.ListRooms() << std::endl;
+
 	cs.LeaveServer(0);
 	cs.LeaveServer(1);
 	cs.LeaveServer(2);
 	cs.LeaveServer(3);
 	cs.LeaveServer(4);
+
+	std::cout << cs.ListRooms() << std::endl;
 	
 	cs.Shutdown();
 	return 0;
