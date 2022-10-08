@@ -1,12 +1,19 @@
 #include "Socket.h"
 
+#define DEBUG_LOG_ENABLED
+#ifdef DEBUG_LOG_ENABLED
+#define DEBUG_PRINT(x, ...) printf(x, __VA_ARGS__)
+#else
+#define DEBUG_PRINT(x)
+#endif
+
 Socket::Socket(){
+	DEBUG_PRINT("Socket::Socket()\n");
 	m_port = (char*)DEFAULT_PORT;
 	info = nullptr;
 	m_socket = INVALID_SOCKET;
 
 	// Initialize Winsock
-	printf("WSAStartup . . . \n");
 	m_err = WSAStartup(MAKEWORD(2, 2), &m_wsaData);
 	// Checks WSAStartup
 	if (m_err != 0) {
@@ -27,7 +34,6 @@ Socket::Socket(){
 	hints.ai_protocol	= IPPROTO_TCP;	// TCP
 	hints.ai_flags		= AI_PASSIVE;
 	// Creating addrinfo
-	printf("Creating our AddrInfo . . . \n");
 	m_err = getaddrinfo(NULL, m_port, &hints, &info);
 	if (m_err != 0) {
 		WSACleanup();
@@ -36,9 +42,11 @@ Socket::Socket(){
 }
 
 Socket::~Socket(){
+	DEBUG_PRINT("Socket::~Socket()\n");
 }
 
 void Socket::Open(){
+	DEBUG_PRINT("Socket::Open()\n");
 	// Socket Creation
 	m_socket = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 	if (m_socket == INVALID_SOCKET) {
@@ -50,10 +58,10 @@ void Socket::Open(){
 }
 
 void Socket::Bind(){
+	DEBUG_PRINT("Socket::Bind()\n");
 	// 12,14,1,3:80				Address lengths can be different
 	// 123,111,230,109:55555	Must specify the length
 	// Bind our socket [Bind]
-	printf("Calling Bind . . . \n");
 	m_err = bind(m_socket, info->ai_addr, (int)info->ai_addrlen);
 	if (m_err == SOCKET_ERROR) {
 		std::string error = "Bind failed with error: %d\n" + WSAGetLastError();
@@ -65,8 +73,8 @@ void Socket::Bind(){
 }
 
 void Socket::Listen(){
-	// [Listen]
-	printf("Calling Listen . . . \n");
+	DEBUG_PRINT("Socket::Listen()\n");
+	// Listen
 	m_err = listen(m_socket, SOMAXCONN);
 	if (m_err == SOCKET_ERROR) {
 		std::string error = "listen failed with error: %d\n" + WSAGetLastError();
@@ -84,12 +92,14 @@ void Socket::Listen(){
 //void Socket::Write(){}
 
 void Socket::Initialize(){
+	DEBUG_PRINT("Socket::Initialize()\n");
 	Open();
 	Bind();
 	Listen();
 }
 
 void Socket::Close(){
+	DEBUG_PRINT("Socket::Close()\n");
 	freeaddrinfo(info);
 	closesocket(m_socket);
 	WSACleanup();

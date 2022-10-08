@@ -24,6 +24,8 @@ private:
 	void LifeCycle();	
 	// Checks if theres a new Chat User trying to connect to the server
 	void Accept();
+	void Read();
+	void Write();
 public:
 	fd_set					m_activeSockets;
 	fd_set					m_socketsReadyForReading;

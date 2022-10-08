@@ -1,6 +1,14 @@
 #include "ChatServer.h"
 
+#define DEBUG_LOG_ENABLED
+#ifdef DEBUG_LOG_ENABLED
+#define DEBUG_PRINT(x, ...) printf(x, __VA_ARGS__)
+#else
+#define DEBUG_PRINT(x)
+#endif
+
 void ChatServer::LifeCycle() {
+	DEBUG_PRINT("ChatServer::LifeCycle()\n");
 	while (m_serverStatus) {
 		// SocketsReadyForReading will be empty here
 		FD_ZERO(&m_activeSockets);
@@ -27,11 +35,39 @@ void ChatServer::LifeCycle() {
 		// function call.
 		Accept();
 
+		// Check if any of the currently connected clients have sent data
+		for (int i = m_chatUsers.size() - 1; i >= 0; i--) {
+			if (FD_ISSET(m_chatUsers[i].userSocket, &m_socketsReadyForReading)) {
+				// Act as a ping server 
+				const int buflen = 128;
+				char buf[buflen];
+
+				int recvResult = recv(m_chatUsers[i].userSocket, buf, buflen, 0);
+
+				// Saving some time to not modify a vector while 
+				// iterating through it. Want remove the client
+				// from the vector
+				if (recvResult == 0) {
+					// Chat user disconnected
+					LeaveServer(m_chatUsers[i].id);
+					continue;
+				}
+
+				printf("Message From the client:\n%s\n", buf);
+				// Check if successful.. 
+				// Check for errors..
+
+				int sendResult = send(m_chatUsers[i].userSocket, buf, recvResult, 0);
+				// Check if successful.. 
+				// Check for errors..
+			}
+		}
 	}
 	Socket::Close();
 }
 
 void ChatServer::StartUp(){
+	DEBUG_PRINT("ChatServer::StartUp()\n");
 	FD_ZERO(&m_activeSockets);
 	FD_ZERO(&m_socketsReadyForReading);
 
@@ -49,10 +85,12 @@ void ChatServer::StartUp(){
 }
 
 void ChatServer::Shutdown(){
+	DEBUG_PRINT("ChatServer::Shutdown()\n");
 	m_serverStatus = false;
 }
 
 short ChatServer::JoinServer(std::string name, SOCKET userSocket) {
+	DEBUG_PRINT("ChatServer::JoinServer()\n");
 	//// Generates new ID for the user
 	//short userIndex = m_userIdIndex;
 	//// Adds the new user
@@ -69,9 +107,11 @@ short ChatServer::JoinServer(std::string name, SOCKET userSocket) {
 			return m_chatUsers[i].id;   // return userid
 		}
 	}
+	return -1;
 }
 
 short ChatServer::JoinRoom(std::string name, short userID){
+	DEBUG_PRINT("ChatServer::JoinRoom()\n");
 	// Tries to find the Chat Room by name
 	bool isRoomFound = false;
 	short roomIndex;
@@ -104,9 +144,10 @@ short ChatServer::JoinRoom(std::string name, short userID){
 }
 
 void ChatServer::LeaveServer(short userID){
+	DEBUG_PRINT("ChatServer::LeaveServer()\n");
 	// Tries to remove the user from each room
-	int numRooms = m_chatRooms.size() - 1;  // We gonna use an index since we could be removing rooms
-	for (int i = numRooms; i >= 0; i--) {	// Decrescent since we could be removing rooms
+	// int numRooms = m_chatRooms.size() - 1;  // We gonna use an index since we could be removing rooms
+	for (int i = m_chatRooms.size()-1; i >= 0; i--) {	// Decrescent since we could be removing rooms
 		LeaveRoom(userID, m_chatRooms[i].id);
 	}
 	// User lookup
@@ -119,6 +160,7 @@ void ChatServer::LeaveServer(short userID){
 }
 
 void ChatServer::LeaveRoom(short userID, short roomID) {
+	DEBUG_PRINT("ChatServer::LeaveRoom()\n");
 	// Room lookup
 	for (int i = 0; i < m_chatRooms.size(); i++) {
 		if (m_chatRooms[i].id == roomID) {
@@ -142,6 +184,7 @@ void ChatServer::LeaveRoom(short userID, short roomID) {
 }
 
 std::string ChatServer::ListRooms(){
+	DEBUG_PRINT("ChatServer::ListRooms()\n");
 	std::string roomList;
 	int roomQty = m_chatRooms.size();
 	if (roomQty == 0) {
@@ -157,6 +200,7 @@ std::string ChatServer::ListRooms(){
 }
 
 void ChatServer::BroadcastMessage(short roomID, std::string message) {
+	DEBUG_PRINT("ChatServer::BroadcastMessage()\n");
 	// Room lookup
 	for (int i = 0; i < m_chatRooms.size(); i++) {
 		if (m_chatRooms[i].id == roomID) {
@@ -175,10 +219,12 @@ void ChatServer::BroadcastMessage(short roomID, std::string message) {
 }
 
 void ChatServer::SendMessage(std::string message, SOCKET userID) {
+	DEBUG_PRINT("ChatServer::SendMessage()\n");
 }
 
 // Checks if theres a new Chat User trying to connect to the server
 void ChatServer::Accept() {
+	//DEBUG_PRINT("ChatServer::Accept()\n");
 	// Check if our ListenSocket is set. This checks if there is a 
 	// new client trying to connect to the server using a "connect" 
 	// function call.
@@ -197,4 +243,12 @@ void ChatServer::Accept() {
 			m_userIdIndex++;
 		}
 	}
+}
+
+void ChatServer::Read() {
+	DEBUG_PRINT("ChatServer::Read()\n");
+}
+
+void ChatServer::Write() {
+	DEBUG_PRINT("ChatServer::Write()\n");
 }
