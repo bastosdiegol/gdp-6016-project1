@@ -16,9 +16,9 @@ int main(int argc, char** argv) {
 	cs.JoinRoom("Room A", 2);
 
 	cs.JoinRoom("Room B", 1);
-	cs.JoinRoom("Room B", 2);
-	cs.JoinRoom("Room B", 3);
-	cs.JoinRoom("Room B", 4);
+	//cs.JoinRoom("Room B", 2);
+	//cs.JoinRoom("Room B", 3);
+	//cs.JoinRoom("Room B", 4);
 
 	cs.JoinRoom("Room C", 2);
 	cs.JoinRoom("Room C", 3);
@@ -26,6 +26,17 @@ int main(int argc, char** argv) {
 
 	cs.JoinRoom("Room B", 0);
 
+	//cs.LeaveRoom(1, 1);
+	//cs.LeaveRoom(0, 1);
+
+	//cs.JoinRoom("Room B", 1);
+
+	cs.LeaveServer(0);
+	cs.LeaveServer(1);
+	cs.LeaveServer(2);
+	cs.LeaveServer(3);
+	cs.LeaveServer(4);
+	
 	cs.Shutdown();
 	return 0;
 }
