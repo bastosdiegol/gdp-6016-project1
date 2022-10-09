@@ -53,6 +53,9 @@ void ChatServer::LifeCycle() {
 					continue;
 				}
 
+				// Buffer HERE
+				// Identify Message Command
+				// DO Things
 				printf("Message From the client:\n%s\n", buf);
 				// Check if successful.. 
 				// Check for errors..

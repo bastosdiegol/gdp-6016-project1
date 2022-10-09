@@ -1,7 +1,13 @@
 #include "ChatServer.h"
+#include "ChatMessageProtocol.h"
 #include <iostream>
 
 int main(int argc, char** argv) {
+
+	ChatMessageProtocol cmp;
+	//cmp.ApplyProtocol("/m My new message! Hello!");
+	cmp.ApplyProtocol("/name Diego", 0);
+
 	ChatServer cs;
 	cs.StartUp();
 
