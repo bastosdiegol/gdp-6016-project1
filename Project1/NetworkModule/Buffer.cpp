@@ -42,6 +42,30 @@ void Buffer::WriteInt32LE(int32_t value) {
 	m_WriteBufferIndex++;
 }
 
+void Buffer::WriteShort16LE(int16_t value) {
+	// Checks if the Write index is at the end of the buffer
+	if (m_BufferSize == m_WriteBufferIndex) {
+		// Doubles the buffer size
+		m_BufferSize *= 2;
+		m_BufferData.resize(m_BufferSize);
+	}
+	m_BufferData[m_WriteBufferIndex] = value;
+	m_BufferData[++m_WriteBufferIndex] = value >> 8;
+	m_WriteBufferIndex++;
+}
+
+void Buffer::WriteStringLE(std::string value) {
+	// Checks if the buffer array has space for the string
+	if ((m_BufferSize - m_WriteBufferIndex) < value.size()) {
+		m_BufferSize += value.size();
+		m_BufferData.resize(m_BufferSize);
+	}
+	for(int i = value.size()-1; i >= 0; i--) {
+		m_BufferData[m_WriteBufferIndex]=value.at(i);
+		m_WriteBufferIndex++;
+	}
+}
+
 // Accepts Index
 // Reads the value on the specified index
 // Returns the value
@@ -62,10 +86,29 @@ uint32_t Buffer::ReadUInt32LE(size_t index) {
 uint32_t Buffer::ReadUInt32LE() {
 
 	uint32_t value = m_BufferData[m_ReadBufferIndex];
-	m_BufferData[++m_ReadBufferIndex] = value >> 8;
-	m_BufferData[++m_ReadBufferIndex] = value >> 16;
-	m_BufferData[++m_ReadBufferIndex] = value >> 24;
+	value |= m_BufferData[++m_ReadBufferIndex] << 8;
+	value |= m_BufferData[++m_ReadBufferIndex] << 16;
+	value |= m_BufferData[++m_ReadBufferIndex] << 24;
 	m_ReadBufferIndex++;
 
+	return value;
+}
+
+int16_t Buffer::ReadShort16LE() {
+
+	int16_t value = m_BufferData[m_ReadBufferIndex];
+	value |= m_BufferData[++m_ReadBufferIndex] << 8;
+	m_ReadBufferIndex++;
+
+	return value;
+}
+
+std::string Buffer::ReadStringLE(size_t lenght) {
+	std::string value;
+	int startingPoint = m_ReadBufferIndex + lenght -1;
+	for (int i = startingPoint; i >= m_ReadBufferIndex; i--) {
+		value.push_back(m_BufferData[i]);
+	}
+	m_ReadBufferIndex += lenght;
 	return value;
 }

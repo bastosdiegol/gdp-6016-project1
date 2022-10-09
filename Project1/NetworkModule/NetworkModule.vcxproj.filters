@@ -32,9 +32,6 @@
     <ClCompile Include="Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ChatMessageProtocol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

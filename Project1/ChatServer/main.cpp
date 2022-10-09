@@ -1,15 +1,36 @@
 #include "ChatServer.h"
 #include "ChatMessageProtocol.h"
+#include "Buffer.h"
 #include <iostream>
 
 int main(int argc, char** argv) {
 
-	ChatMessageProtocol cmp;
-	//cmp.ApplyProtocol("/m My new message! Hello!");
-	cmp.ApplyProtocol("/name Diego", 0);
+	//ChatMessageProtocol cmp;
+	////cmp.ApplyProtocol("/m My new message! Hello!");
+	//cmp.ApplyProtocol("/name Diego", 0);
 
-	ChatServer cs;
-	cs.StartUp();
+	Buffer b1(6);
+	b1.WriteInt32LE(500);		// 00110010
+	b1.WriteShort16LE(16);	// 00000001 11110100	
+	b1.WriteStringLE("test");
+
+	int readValue500 = b1.ReadUInt32LE();
+	printf("readValue500: %d\n", readValue500);
+
+	short readValue16 = b1.ReadShort16LE();
+	printf("readValue16: %d\n", readValue16);
+
+	std::string readValuetest = b1.ReadStringLE(4);
+	std::cout << "readValuetest: " << readValuetest << std::endl;
+
+	//b1.WriteInt32LE(10);		// 00110010
+	//b1.WriteInt32LE(13, 100);		// 00000001 11110100	
+
+	//int readValue10 = b1.ReadUInt32LE();
+	//int readValue100 = b1.ReadUInt32LE(13);
+
+	//ChatServer cs;
+	//cs.StartUp();
 
 	//SOCKET a = NULL;
 	//cs.JoinServer("A", a);
@@ -48,6 +69,6 @@ int main(int argc, char** argv) {
 
 	//std::cout << cs.ListRooms() << std::endl;
 	
-	cs.Shutdown();
+	//cs.Shutdown();
 	return 0;
 }
