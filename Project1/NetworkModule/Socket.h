@@ -17,8 +17,6 @@ public:
 	// Destructor
 	~Socket();
 
-	// Call all procedures necessary to start-up a socket
-	void Initialize();
 	// Closes the Socket
 	void Close();
 
@@ -31,6 +29,8 @@ protected:
 	SOCKET				m_socket;
 
 	// Sockets Internal Procedures
+	void ServerAddrinfoSetup();
+	void ClientAddrinfoSetup(const char* domain);
 	void Open();
 	void Bind();
 	void Listen();

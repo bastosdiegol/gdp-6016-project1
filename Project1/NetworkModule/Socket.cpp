@@ -26,13 +26,20 @@ Socket::Socket(){
 		WSACleanup();
 		throw "WSAStartup could not find an usable WinSock DLL %d\n", m_err;
 	}
+}
 
+Socket::~Socket(){
+	DEBUG_PRINT("Socket::~Socket()\n");
+}
+
+void Socket::ServerAddrinfoSetup() {
 	// Prepare addrinfo structure
 	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family		= AF_INET;		// IPV4
-	hints.ai_socktype	= SOCK_STREAM;	// Stream
-	hints.ai_protocol	= IPPROTO_TCP;	// TCP
-	hints.ai_flags		= AI_PASSIVE;
+	hints.ai_family = AF_INET;		// IPV4
+	hints.ai_socktype = SOCK_STREAM;	// Stream
+	hints.ai_protocol = IPPROTO_TCP;	// TCP
+	hints.ai_flags = AI_PASSIVE;
+
 	// Creating addrinfo
 	m_err = getaddrinfo(NULL, m_port, &hints, &info);
 	if (m_err != 0) {
@@ -41,8 +48,19 @@ Socket::Socket(){
 	}
 }
 
-Socket::~Socket(){
-	DEBUG_PRINT("Socket::~Socket()\n");
+void Socket::ClientAddrinfoSetup(const char* domain) {
+	// Prepare addrinfo structure
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family = AF_INET;		// IPV4
+	hints.ai_socktype = SOCK_STREAM;	// Stream
+	hints.ai_protocol = IPPROTO_TCP;	// TCP
+
+	// Creating addrinfo
+	m_err = getaddrinfo(domain, m_port, &hints, &info);
+	if (m_err != 0) {
+		WSACleanup();
+		throw "getaddrinfo() failed with error: %d\n", m_err;
+	}
 }
 
 void Socket::Open(){
@@ -90,13 +108,6 @@ void Socket::Listen(){
 //void Socket::Read(){}
 
 //void Socket::Write(){}
-
-void Socket::Initialize(){
-	DEBUG_PRINT("Socket::Initialize()\n");
-	Open();
-	Bind();
-	Listen();
-}
 
 void Socket::Close(){
 	DEBUG_PRINT("Socket::Close()\n");

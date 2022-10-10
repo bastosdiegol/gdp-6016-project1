@@ -80,7 +80,11 @@ void ChatServer::StartUp(){
 	m_tv.tv_sec	= 0;
 	m_tv.tv_usec	= 500 * 1000; // 500 milliseconds, half a second
 
-	Socket::Initialize();
+	//Socket::Initialize();
+	ServerAddrinfoSetup();
+	Open();
+	Bind();
+	Listen();
 
 	m_serverStatus = true;
 
