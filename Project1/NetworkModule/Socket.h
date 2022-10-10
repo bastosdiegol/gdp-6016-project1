@@ -20,13 +20,13 @@ public:
 	// Closes the Socket
 	void Close();
 
+	SOCKET				m_socket;
 protected:
 	char*				m_port;				// Port (in case DEFAULT_PORT is overwritten)
 	int					m_err;				// Functions Results will be store here - Error Check
 	WSADATA				m_wsaData;
 	struct addrinfo*	info;
 	struct addrinfo		hints;
-	SOCKET				m_socket;
 
 	// Sockets Internal Procedures
 	void ServerAddrinfoSetup();

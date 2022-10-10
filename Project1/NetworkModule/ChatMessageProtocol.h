@@ -27,6 +27,6 @@ public:
 	};
 
 	Buffer* ApplyProtocol(const std::string &message, const short &userID);
-
+	Buffer* DecodeProtocol(char* buf, int buflen);
 };
 

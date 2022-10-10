@@ -10,7 +10,11 @@
 void ChatServer::LifeCycle() {
 
 	ChatMessageProtocol cmp;
-	Buffer* theBuffer;
+	Buffer* theBuffer = new Buffer(128);
+	int msgBufLen;			// Msg received buf lenght
+	short msgType;			// Type of the msg
+	std::string userName;	// Chat user name
+	short userId;			// Chat user id
 
 	DEBUG_PRINT("ChatServer::LifeCycle()\n");
 	while (m_serverStatus) {
@@ -57,18 +61,28 @@ void ChatServer::LifeCycle() {
 					continue;
 				}
 
+				//theBuffer = cmp.DecodeProtocol(buf);
+				// Copies the buffer received to the class Buffer
+				theBuffer->m_BufferData = std::vector<uint8_t>(&buf[0], &buf[buflen]);
+				// Reads the size of the buffer
+				msgBufLen = theBuffer->ReadUInt32LE();
+				// Reads the type of the message
+				msgType = theBuffer->ReadShort16LE();
+
+				switch (msgType) {
+				case 0 : // Case JOIN_SERVER
+					userName = theBuffer->ReadStringLE(msgBufLen - 6);				// Reads the username { 6 = 4 (buflen) + 2 (msgtype) ... username }
+					userId = this->JoinServer(userName, m_chatUsers[i].userSocket); // Adds the user on the server
+					theBuffer = new Buffer(2);								// Prepares a Buffer for the user id
+					theBuffer->WriteShort16LE(m_chatUsers[i].id);			// Writes the ID on the buffer
+					char* responseBuf = (char*)&theBuffer->m_BufferData[0]; // Converts to the type accepted by send()
+					send(m_chatUsers[i].userSocket, responseBuf, recvResult, 0);
+					break;
+				default:
+					break;
+				}
+
 				
-
-				// Buffer HERE
-				// Identify Message Command
-				// DO Things
-				printf("Message From the client:\n%s\n", buf);
-				// Check if successful.. 
-				// Check for errors..
-
-				int sendResult = send(m_chatUsers[i].userSocket, buf, recvResult, 0);
-				// Check if successful.. 
-				// Check for errors..
 			}
 		}
 	}
