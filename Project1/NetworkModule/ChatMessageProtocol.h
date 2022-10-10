@@ -1,12 +1,9 @@
 #pragma once
 #include <string>
 
+#include "Buffer.h"
+
 typedef short MESSAGE_TYPE;
-#define JOIN_SERVER		0;
-#define LEAVE_SERVER	1;
-#define JOIN_ROOM		2;
-#define LEAVE_ROOM		4;
-#define MESSAGE			5;
 
 class ChatMessageProtocol {
 public:
@@ -16,6 +13,12 @@ public:
 	short			m_roomID;
 	std::string		m_message;
 
+	const MESSAGE_TYPE JOIN_SERVER	= 0;
+	const MESSAGE_TYPE LEAVE_SERVER	= 1;
+	const MESSAGE_TYPE JOIN_ROOM	= 2;
+	const MESSAGE_TYPE LEAVE_ROOM	= 4;
+	const MESSAGE_TYPE MESSAGE		= 5;
+
 	ChatMessageProtocol() : m_lenght(0)
 							, m_msgType(-1)
 							, m_senderID(-1)
@@ -23,6 +26,7 @@ public:
 							, m_message(""){
 	};
 
-	std::string ApplyProtocol(const std::string &message, const short &userID);
+	Buffer* ApplyProtocol(const std::string &message, const short &userID);
+
 };
 

@@ -6,13 +6,15 @@
 
 class ChatClient : public Socket {
 public:
+
 	short						 m_id;			// User ID
 	std::string					 m_name;		// User Name
 	std::map<std::string, short> m_rooms;		// Rooms joined by the user
 
+
 	void StartUp(const char* domain);
 	void Shutdown();
-	void Write(const char* message);
+	void Write(const char* buf, int buflen);
 
 private:
 	void Connect();

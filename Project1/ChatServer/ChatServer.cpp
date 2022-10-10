@@ -8,6 +8,10 @@
 #endif
 
 void ChatServer::LifeCycle() {
+
+	ChatMessageProtocol cmp;
+	Buffer* theBuffer;
+
 	DEBUG_PRINT("ChatServer::LifeCycle()\n");
 	while (m_serverStatus) {
 		// SocketsReadyForReading will be empty here
@@ -52,6 +56,8 @@ void ChatServer::LifeCycle() {
 					LeaveServer(m_chatUsers[i].id);
 					continue;
 				}
+
+				
 
 				// Buffer HERE
 				// Identify Message Command

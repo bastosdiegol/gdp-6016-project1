@@ -3,20 +3,21 @@
 #include <sstream>
 #include <vector>
 
-std::string ChatMessageProtocol::ApplyProtocol(const std::string &message, const short& userID) {
+Buffer* ChatMessageProtocol::ApplyProtocol(const std::string &message, const short& userID) {
     std::stringstream           ss(message);    // Stringstream from message parameter
     std::string                 item;           // String split part from stringstream
     std::stringstream           finalMessage;   // Final Message with Protocal Applied
+    Buffer*                     bufferData = new Buffer(10);
 
     // Gets the first command of the message
     std::getline(ss, item, ' ');
 
     // Message type JOIN_SERVER
     if (item == "/name") {
-        finalMessage << JOIN_SERVER;
-        finalMessage << ',';
+        bufferData->WriteShort16LE(JOIN_SERVER);
+        bufferData->WriteStringLE(",");
         std::getline(ss, item, ' ');
-        finalMessage << item;           // User name
+        bufferData->WriteStringLE(item);
     }
     // Message type LEAVE_SERVER
     if (item == "/quit") {
@@ -52,5 +53,5 @@ std::string ChatMessageProtocol::ApplyProtocol(const std::string &message, const
         finalMessage << item;           // Complete Message
     }
 
-    return finalMessage.str();
+    return bufferData;
 }

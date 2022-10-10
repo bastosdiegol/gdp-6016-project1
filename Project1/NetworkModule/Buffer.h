@@ -5,6 +5,11 @@
 
 class Buffer {
 public:
+	// call m_Buffer.resize in your constructor
+	std::vector<uint8_t> m_BufferData;
+	// Stores the size of the buffer
+	size_t m_BufferSize;
+
 	// Default Constructor
 	Buffer(size_t size);
 
@@ -37,12 +42,6 @@ public:
 	int8_t* ReadString8BE();
 
 private:
-	// call m_Buffer.resize in your constructor
-	std::vector<uint8_t> m_BufferData;
-
-	// Stores the size of the buffer
-	size_t m_BufferSize;
-
 	// Stores the index of Write and Read Operations
 	size_t m_WriteBufferIndex;
 	size_t m_ReadBufferIndex;

@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "Socket.h"
+#include "Buffer.h"
+#include "ChatMessageProtocol.h"
 
 struct ChatUser {
 	short		id;			// User ID

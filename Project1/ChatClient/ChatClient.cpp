@@ -27,8 +27,20 @@ void ChatClient::Shutdown() {
 	WSACleanup();
 }
 
+void ChatClient::Write(const char* buf, int buflen) {
+	DEBUG_PRINT("ChatClient::Write()\n");
+
+	m_err = send(m_socket, buf, buflen, 0);
+	if (m_err == SOCKET_ERROR) {
+		std::string error = "Send failed with error: %d\n" + WSAGetLastError();
+		closesocket(m_socket);
+		WSACleanup();
+		throw error;
+	}
+}
+
 void ChatClient::Connect() {
-	DEBUG_PRINT("ChatClient::connect()\n");
+	DEBUG_PRINT("ChatClient::Connect()\n");
 
 	m_err = connect(m_socket, info->ai_addr, (int)info->ai_addrlen);
 	if (m_err == SOCKET_ERROR) {
