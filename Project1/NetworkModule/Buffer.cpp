@@ -70,6 +70,51 @@ void Buffer::WriteStringLE(std::string value) {
 	}
 }
 
+// Accepts Value
+// Writes the BE Int32 value on the latest write Index
+void Buffer::WriteInt32BE(int32_t value) {
+	// Checks if the Write index is at the end of the buffer
+	if (m_BufferSize == m_WriteBufferIndex) {
+		// Doubles the buffer size
+		m_BufferSize *= 2;
+		m_BufferData.resize(m_BufferSize);
+	}
+	m_BufferData[m_WriteBufferIndex]   = value >> 24;
+	m_BufferData[++m_WriteBufferIndex] = value >> 16;
+	m_BufferData[++m_WriteBufferIndex] = value >> 8;
+	m_BufferData[++m_WriteBufferIndex] = value;
+	m_WriteBufferIndex++;
+	
+}
+
+// Accepts Value
+// Writes the BE Short16 value on the latest write Index
+void Buffer::WriteShort16BE(int16_t value) {
+	// Checks if the Write index is at the end of the buffer
+	if (m_BufferSize == m_WriteBufferIndex) {
+		// Doubles the buffer size
+		m_BufferSize *= 2;
+		m_BufferData.resize(m_BufferSize);
+	}
+	m_BufferData[m_WriteBufferIndex]   = value >> 8;
+	m_BufferData[++m_WriteBufferIndex] = value;
+	m_WriteBufferIndex++;
+}
+
+// Accepts Value
+// Writes the BE String value on the latest write Index
+void Buffer::WriteStringBE(std::string value) {
+	// Checks if the buffer array has space for the string
+	if ((m_BufferSize - m_WriteBufferIndex) < value.size()) {
+		m_BufferSize += value.size();
+		m_BufferData.resize(m_BufferSize);
+	}
+	for (int i = 0; i < value.size(); i++) {
+		m_BufferData[m_WriteBufferIndex] = value.at(i);
+		m_WriteBufferIndex++;
+	}
+}
+
 // Accepts Index
 // Reads the LE Int32 value on the latest Read Index
 // Returns the Int32
@@ -116,9 +161,46 @@ int16_t Buffer::ReadShort16LE() {
 std::string Buffer::ReadStringLE(size_t lenght) {
 	std::string value;
 	int startingPoint = m_ReadBufferIndex + lenght -1;
-	int i = startingPoint;
 	int lowerLimit = m_ReadBufferIndex;
 	for (int i = startingPoint; i >= lowerLimit; i--) {
+		value.push_back(m_BufferData[i]);
+	}
+	m_ReadBufferIndex += lenght;
+	return value;
+}
+
+// Accepts nothing
+// Reads the BE Int32 value on the latest Read Index
+// Returns the Int32
+uint32_t Buffer::ReadUInt32BE() {
+	uint32_t value = m_BufferData[m_ReadBufferIndex] << 24;
+	value |= m_BufferData[++m_ReadBufferIndex] << 16 ;
+	value |= m_BufferData[++m_ReadBufferIndex] << 8;
+	value |= m_BufferData[++m_ReadBufferIndex];
+	m_ReadBufferIndex++;
+
+	return value;
+}
+
+// Accepts nothing
+// Reads the BE Short16 value on the latest Read Index
+// Returns the Short16
+int16_t Buffer::ReadShort16BE() {
+	uint32_t value = m_BufferData[m_ReadBufferIndex] << 8;
+	value |= m_BufferData[++m_ReadBufferIndex];
+	m_ReadBufferIndex++;
+
+	return value;
+}
+
+// Accepts String size
+// Reads the BE String value on the latest Read Index
+// Returns the String
+std::string Buffer::ReadStringBE(size_t lenght) {
+	std::string value;
+	int startingPoint = m_ReadBufferIndex;
+	int limit = m_ReadBufferIndex + lenght;
+	for (int i = startingPoint; i < limit; i++) {
 		value.push_back(m_BufferData[i]);
 	}
 	m_ReadBufferIndex += lenght;
