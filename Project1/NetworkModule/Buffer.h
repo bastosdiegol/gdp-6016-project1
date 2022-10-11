@@ -33,7 +33,7 @@ public:
 	void WriteShort16BE(int16_t value);
 	// Accepts Value
 	// Writes the BE String value on the latest write Index
-	void WriteString8BE(int8_t* value, int lenght);
+	void WriteStringBE(std::string value);
 
 	// Accepts Index
 	// Reads the LE Int32 value on the latest Read Index
@@ -62,7 +62,7 @@ public:
 	// Accepts String size
 	// Reads the BE String value on the latest Read Index
 	// Returns the String
-	int8_t* ReadString8BE();
+	std::string ReadStringBE(size_t lenght);
 
 private:
 	// Stores the index of Write and Read Operations

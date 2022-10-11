@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 			// Copies the buffer received to the class Buffer
 			theBuffer->m_BufferData = std::vector<uint8_t>(&buf[0], &buf[bufLen]);
 			// Reads the userid
-			userid = theBuffer->ReadShort16LE();
+			userid = theBuffer->ReadShort16BE();
 			cc.m_id = userid;
 			// Welcoming messages displayed in the console
 			std::cout << "Welcome to the chat server, " << cc.m_name << "!" << std::endl;
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
 			//theBuffer = cmp.DecodeProtocol(buf);
 			// Copies the buffer received to the class Buffer
 			theBuffer->m_BufferData = std::vector<uint8_t>(&recvbuf[0], &recvbuf[bufLen]);
-			std::cout << theBuffer->ReadStringLE(result);
+			std::cout << theBuffer->ReadStringBE(result);
 		}
 
 		std::cout << "\nMessage Box: ";

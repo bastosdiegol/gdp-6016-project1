@@ -72,18 +72,18 @@ void ChatServer::LifeCycle() {
 				// Copies the buffer received to the class Buffer
 				theBuffer->m_BufferData = std::vector<uint8_t>(&buf[0], &buf[buflen]);
 				// Reads the size of the buffer
-				msgBufLen = theBuffer->ReadUInt32LE();
+				msgBufLen = theBuffer->ReadUInt32BE();
 				// Reads the type of the message
-				msgType = theBuffer->ReadShort16LE();
+				msgType = theBuffer->ReadShort16BE();
 				// Variable utilized for response when needed
 				char* responseBuf;
 
 				switch (msgType) {
 				case 0 : // Case JOIN_SERVER
-					userName = theBuffer->ReadStringLE(msgBufLen - 6);				// Reads the username { 6 = 4 (buflen) + 2 (msgtype) ... username }
+					userName = theBuffer->ReadStringBE(msgBufLen - 6);				// Reads the username { 6 = 4 (buflen) + 2 (msgtype) ... username }
 					userId = this->JoinServer(userName, m_chatUsers[i].userSocket); // Adds the user on the server
 					theBuffer = new Buffer(2);										// Prepares a Buffer for the user id
-					theBuffer->WriteShort16LE(m_chatUsers[i].id);					// Writes the ID on the buffer
+					theBuffer->WriteShort16BE(m_chatUsers[i].id);					// Writes the ID on the buffer
 					responseBuf = (char*)&theBuffer->m_BufferData[0];				// Converts to the type accepted by send()
 					send(m_chatUsers[i].userSocket, responseBuf, recvResult, 0);
 					break;
@@ -91,13 +91,13 @@ void ChatServer::LifeCycle() {
 					this->LeaveServer(m_chatUsers[i].id);
 					break;
 				case 2 : // Case JOIN_ROOM
-					roomName = theBuffer->ReadStringLE(msgBufLen - 6);		// Reads the roomname { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					roomName = theBuffer->ReadStringBE(msgBufLen - 6);		// Reads the roomname { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
 					roomId = this->JoinRoom(roomName, m_chatUsers[i].id);	// Returns the Room id
 					// Broadcast the new user to the room
 					this->BroadcastMessage(roomId, "["+ roomName +"] " + m_chatUsers[i].name + " has joined the room.");
 					break;
 				case 3 : // Case LEAVE_ROOM
-					roomName = theBuffer->ReadStringLE(msgBufLen - 6);		// Reads the roomname { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					roomName = theBuffer->ReadStringBE(msgBufLen - 6);		// Reads the roomname { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
 					for (int k = 0; k < m_chatRooms.size(); k++) {
 						if (m_chatRooms[k].name == roomName)
 							roomId = m_chatRooms[k].id;
@@ -106,7 +106,7 @@ void ChatServer::LifeCycle() {
 					this->BroadcastMessage(roomId, "[" + roomName + "] " + m_chatUsers[i].name + " has left the room.");
 					break;
 				case 4 : // Case MESSAGE
-					roomName = theBuffer->ReadStringLE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					roomName = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
 					std::stringstream ss(roomName);
 					std::getline(ss, roomName, ' ');
 					std::string message;
@@ -262,7 +262,7 @@ std::string ChatServer::ListRooms(){
 
 void ChatServer::BroadcastMessage(short roomID, std::string message) {
 	Buffer theBuffer(message.size());
-	theBuffer.WriteStringLE(message);
+	theBuffer.WriteStringBE(message);
 	// Converts the Data from the Buffer Class Into variable accepted by send()
 	char* buf = (char*)&theBuffer.m_BufferData[0];
 	int bufLen = theBuffer.m_BufferSize;
