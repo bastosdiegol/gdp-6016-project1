@@ -106,7 +106,9 @@ int16_t Buffer::ReadShort16LE() {
 std::string Buffer::ReadStringLE(size_t lenght) {
 	std::string value;
 	int startingPoint = m_ReadBufferIndex + lenght -1;
-	for (int i = startingPoint; i >= m_ReadBufferIndex; i--) {
+	int i = startingPoint;
+	int lowerLimit = m_ReadBufferIndex;
+	for (int i = startingPoint; i >= lowerLimit; i--) {
 		value.push_back(m_BufferData[i]);
 	}
 	m_ReadBufferIndex += lenght;

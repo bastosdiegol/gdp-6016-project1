@@ -3,11 +3,14 @@
 #include "ChatMessageProtocol.h"
 
 #include <iostream>
+#include <vector>
+#include <sstream>
 
 int main(int argc, char** argv) {
 	ChatClient			cc;
 	Buffer*				theBuffer;
 	ChatMessageProtocol cmp;
+	int					result;
 
 	// Beginning of the Program - Ask username
 	std::cout << "Enter your username: ";
@@ -22,10 +25,10 @@ int main(int argc, char** argv) {
 	//cc.Write((char*)&theBuffer->m_BufferData, theBuffer->m_BufferSize);
 	// Converts the Data from the Buffer Class Into variable accepted by send()
 	char* buf = (char*)&theBuffer->m_BufferData[0];
-	const int bufLen = 128;
+	int bufLen = theBuffer->m_BufferSize;
 
 	// Sends the username to the server
-	send(cc.m_socket, buf, theBuffer->m_BufferSize, 0);
+	send(cc.m_socket, buf, bufLen, 0);
 
 	// Tries to receive the User ID from the ChatServer
 	bool tryAgain = true;
@@ -55,9 +58,57 @@ int main(int argc, char** argv) {
 	}
 
 	// Main Loop
-	tryAgain = false;
+	tryAgain = true;
+	std::string message;
+	std::string item;
+	std::stringstream ss;
 	while (tryAgain) {
-		tryAgain = false;
+		bufLen = 128;
+		char recvbuf[128]{};
+		result = recv(cc.m_socket, recvbuf, bufLen, 0);
+
+		if (result != -1) {
+			Buffer* theBuffer = new Buffer(result);
+			//theBuffer = cmp.DecodeProtocol(buf);
+			// Copies the buffer received to the class Buffer
+			theBuffer->m_BufferData = std::vector<uint8_t>(&recvbuf[0], &recvbuf[bufLen]);
+			std::cout << theBuffer->ReadStringLE(result);
+		}
+
+		std::cout << "\nMessage Box: ";
+		// Reads the user console writing
+		//std::cin >> message;
+		std::getline(std::cin, message);
+		ss = std::stringstream(message);
+		std::getline(ss, item, ' ');
+		//// Now we are going to replace the cannel name by its ID
+		//if (item == "/leave") {
+		//	// Iterator for the roomname roomid map
+		//	std::map<std::string, short>::iterator it;
+		//	// Reads the roomname
+		//	std::getline(ss, item, ' ');
+		//	// Finds it on the map
+		//	it = cc.m_rooms.find(item);
+		//	if (it != cc.m_rooms.end()) {
+		//		// New message with ID instead
+		//		message = "/leave " + it->second;
+		//	}
+		//}
+		// Applies the Message Protocol to the message typed by the usar
+		theBuffer = cmp.ApplyProtocol(message, cc.m_id);
+		if (theBuffer != nullptr) {
+			// Updates buffer and buffer lenght variables
+			buf = (char*)&theBuffer->m_BufferData[0];
+			bufLen = theBuffer->m_BufferSize;
+			// Sends the message to the server
+			send(cc.m_socket, buf, bufLen, 0);
+		}
+		// Transform into stringstream
+		std::stringstream ss(message);
+		// Breaks first part
+		std::getline(ss, item, ' ');
+		if(item == "/quit")
+			tryAgain = false;
 	}
 
 

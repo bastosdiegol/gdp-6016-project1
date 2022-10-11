@@ -11,15 +11,20 @@ void ChatServer::LifeCycle() {
 
 	ChatMessageProtocol cmp;
 	Buffer* theBuffer = new Buffer(128);
+	const int buflen	= 128;
+
 	int msgBufLen;			// Msg received buf lenght
 	short msgType;			// Type of the msg
 	std::string userName;	// Chat user name
 	short userId;			// Chat user id
+	std::string roomName;	// room name
+	short roomId;			// room id
 
 	DEBUG_PRINT("ChatServer::LifeCycle()\n");
 	while (m_serverStatus) {
 		// SocketsReadyForReading will be empty here
-		FD_ZERO(&m_activeSockets);
+		FD_ZERO(&m_socketsReadyForReading);
+		//FD_ZERO(&m_socketsReadyForReading);
 
 		// Add all the sockets that have data ready to be recv'd 
 		// to the socketsReadyForReading
@@ -46,9 +51,9 @@ void ChatServer::LifeCycle() {
 		// Check if any of the currently connected clients have sent data
 		for (int i = m_chatUsers.size() - 1; i >= 0; i--) {
 			if (FD_ISSET(m_chatUsers[i].userSocket, &m_socketsReadyForReading)) {
-				// Act as a ping server 
-				const int buflen = 128;
-				char buf[buflen];
+				
+				char buf[buflen]{};
+				theBuffer = new Buffer(128);
 
 				int recvResult = recv(m_chatUsers[i].userSocket, buf, buflen, 0);
 
@@ -68,21 +73,37 @@ void ChatServer::LifeCycle() {
 				msgBufLen = theBuffer->ReadUInt32LE();
 				// Reads the type of the message
 				msgType = theBuffer->ReadShort16LE();
+				// Variable utilized for response when needed
+				char* responseBuf;
 
 				switch (msgType) {
 				case 0 : // Case JOIN_SERVER
 					userName = theBuffer->ReadStringLE(msgBufLen - 6);				// Reads the username { 6 = 4 (buflen) + 2 (msgtype) ... username }
 					userId = this->JoinServer(userName, m_chatUsers[i].userSocket); // Adds the user on the server
-					theBuffer = new Buffer(2);								// Prepares a Buffer for the user id
-					theBuffer->WriteShort16LE(m_chatUsers[i].id);			// Writes the ID on the buffer
-					char* responseBuf = (char*)&theBuffer->m_BufferData[0]; // Converts to the type accepted by send()
+					theBuffer = new Buffer(2);										// Prepares a Buffer for the user id
+					theBuffer->WriteShort16LE(m_chatUsers[i].id);					// Writes the ID on the buffer
+					responseBuf = (char*)&theBuffer->m_BufferData[0];				// Converts to the type accepted by send()
 					send(m_chatUsers[i].userSocket, responseBuf, recvResult, 0);
 					break;
-				default:
+				case 1 : // Case LEAVE_SERVER
+					this->LeaveServer(m_chatUsers[i].id);
+					break;
+				case 2 : // Case JOIN_ROOM
+					roomName = theBuffer->ReadStringLE(msgBufLen - 6);		// Reads the roomname { 8 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					roomId = this->JoinRoom(roomName, m_chatUsers[i].id);	// Returns the Room id
+					// Broadcast the new user to the room
+					this->BroadcastMessage(roomId, "["+ roomName +"] " + m_chatUsers[i].name + " has joined the room.");
+					break;
+				case 3 : // Case LEAVE_ROOM
+					roomName = theBuffer->ReadStringLE(msgBufLen - 6);		// Reads the roomname { 8 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					for (int k = 0; k < m_chatRooms.size(); k++) {
+						if (m_chatRooms[k].name == roomName)
+							roomId = m_chatRooms[k].id;
+					}
+					this->LeaveRoom(m_chatUsers[i].id, roomId);
+					this->BroadcastMessage(roomId, "[" + roomName + "] " + m_chatUsers[i].name + " has left the room.");
 					break;
 				}
-
-				
 			}
 		}
 	}
@@ -91,7 +112,7 @@ void ChatServer::LifeCycle() {
 
 void ChatServer::StartUp(){
 	DEBUG_PRINT("ChatServer::StartUp()\n");
-	FD_ZERO(&m_activeSockets);
+	//FD_ZERO(&m_activeSockets);
 	FD_ZERO(&m_socketsReadyForReading);
 
 	m_roomIdIndex = 0;
@@ -227,6 +248,12 @@ std::string ChatServer::ListRooms(){
 }
 
 void ChatServer::BroadcastMessage(short roomID, std::string message) {
+	Buffer theBuffer(message.size());
+	theBuffer.WriteStringLE(message);
+	// Converts the Data from the Buffer Class Into variable accepted by send()
+	char* buf = (char*)&theBuffer.m_BufferData[0];
+	int bufLen = theBuffer.m_BufferSize;
+
 	DEBUG_PRINT("ChatServer::BroadcastMessage()\n");
 	// Room lookup
 	for (int i = 0; i < m_chatRooms.size(); i++) {
@@ -236,17 +263,13 @@ void ChatServer::BroadcastMessage(short roomID, std::string message) {
 				// User lookup
 				for (int k = 0; k < m_chatUsers.size(); k++) {
 					if (m_chatUsers[k].id == m_chatRooms[i].users[j]) {
-						SendMessage(message, m_chatUsers[k].userSocket);
+						send(m_chatUsers[k].userSocket, buf, bufLen, 0);
 					}
 				}
 				
 			}
 		}
 	}
-}
-
-void ChatServer::SendMessage(std::string message, SOCKET userID) {
-	DEBUG_PRINT("ChatServer::SendMessage()\n");
 }
 
 // Checks if theres a new Chat User trying to connect to the server

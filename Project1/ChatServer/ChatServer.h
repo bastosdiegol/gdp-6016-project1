@@ -29,7 +29,7 @@ private:
 	void Read();
 	void Write();
 public:
-	fd_set					m_activeSockets;
+	//fd_set					m_activeSockets;
 	fd_set					m_socketsReadyForReading;
 	struct timeval			m_tv;
 
@@ -59,7 +59,5 @@ public:
 	std::string ListRooms();
 	// Sends a message submited by a user to all users of the same channel
 	void BroadcastMessage(short roomID, std::string message);
-	// Sends a message to a user
-	void SendMessage(std::string message, SOCKET userID);
 };
 

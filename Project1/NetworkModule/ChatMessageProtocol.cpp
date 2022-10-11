@@ -28,45 +28,38 @@ Buffer* ChatMessageProtocol::ApplyProtocol(const std::string &message, const sho
         bufferData = new Buffer(finalBufLen);       // {int buflen | short msgtype | short userid}
         bufferData->WriteInt32LE(finalBufLen);      // final buffer size
         bufferData->WriteShort16LE(LEAVE_SERVER);   // msgtype
-        bufferData->WriteShort16LE((short)std::stoi(item)); // userid
+        bufferData->WriteShort16LE(userID); // userid
 
-    } else if (item == "/enter") { // Message type JOIN_ROOM
+    } else if (item == "/join") { // Message type JOIN_ROOM
         std::getline(ss, item, ' ');                // Reads the room name
-        finalBufLen = 8 + item.length();            // {int 4bytes | short 2bytes  | char* 1byte*lenght | short 2bytes}
-        bufferData = new Buffer(finalBufLen);       // {int buflen | short msgtype | char* roomname     | short userid}
+        finalBufLen = 6 + item.length();            // {int 4bytes | short 2bytes  | char* 1byte*lenght }
+        bufferData = new Buffer(finalBufLen);       // {int buflen | short msgtype | char* roomname     }
         bufferData->WriteInt32LE(finalBufLen);      // final buffer size
         bufferData->WriteShort16LE(JOIN_ROOM);      // msgtype
         bufferData->WriteStringLE(item);            // roomname
-        std::getline(ss, item, ' ');                // Reads the userid
-        bufferData->WriteShort16LE((short)std::stoi(item)); // userid
 
     } else if (item == "/leave") { // Message type LEAVE_ROOM
-        std::getline(ss, item, ' ');                // Reads the roomid
-        finalBufLen = 10;                           // {int 4bytes | short 2bytes  | short 2bytes | short 2bytes}
-        bufferData = new Buffer(finalBufLen);       // {int buflen | short msgtype | short roomid | short userid}
+        std::getline(ss, item, ' ');                // Reads the room name
+        finalBufLen = 6 + item.length();            // {int 4bytes | short 2bytes  | char* 1byte*lenght}
+        bufferData = new Buffer(finalBufLen);       // {int buflen | short msgtype | char* roomname}
         bufferData->WriteInt32LE(finalBufLen);      // final buffer size
         bufferData->WriteShort16LE(LEAVE_ROOM);     // msgtype
-        std::getline(ss, item, ' ');                // Reads the roomid
-        bufferData->WriteShort16LE((short)std::stoi(item)); // roomdid
-        std::getline(ss, item, ' ');                // Reads the userid
-        bufferData->WriteShort16LE((short)std::stoi(item)); // userid
+        bufferData->WriteStringLE(item);            // roomname
 
     }else if (item == "/m") { // Message type MESSAGE
         std::getline(ss, item, ' ');                // Reads the roomid
         short roomid = (short)std::stoi(item);
-        std::getline(ss, item, ' ');                // Reads the userid
-        short userid = (short)std::stoi(item);
         std::getline(ss, item, ' ');                // Reads the message
         finalBufLen = 10 + item.length();           // {int 4bytes | short 2bytes  | short 2bytes | short 2bytes  | char* 1byte*lenght}
         bufferData = new Buffer(finalBufLen);       // {int buflen | short msgtype | short roomid | short userid  | char* message}
         bufferData->WriteInt32LE(finalBufLen);      // buffer << final buffer size
         bufferData->WriteShort16LE(MESSAGE);        // buffer << msgtype
         bufferData->WriteShort16LE(roomid);         // buffer << roomdid
-        bufferData->WriteShort16LE(userid);         // buffer << userid
+        bufferData->WriteShort16LE(userID);         // buffer << userid
         bufferData->WriteStringLE(item);            // buffer << message
 
     } else {
-        throw "Message not typified.";
+        return nullptr;
     }
 
     return bufferData;
