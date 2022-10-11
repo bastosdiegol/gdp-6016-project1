@@ -5,12 +5,15 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <conio.h>
 
 int main(int argc, char** argv) {
 	ChatClient			cc;
 	Buffer*				theBuffer;
 	ChatMessageProtocol cmp;
 	int					result;
+	std::stringstream   messageHistory;
+	int key;
 
 	// Beginning of the Program - Ask username
 	std::cout << "Enter your username: ";
@@ -49,18 +52,21 @@ int main(int argc, char** argv) {
 			userid = theBuffer->ReadShort16BE();
 			cc.m_id = userid;
 			// Welcoming messages displayed in the console
-			std::cout << "Welcome to the chat server, " << cc.m_name << "!" << std::endl;
-			std::cout << "Type /join roomname to enter a room." << std::endl;
-			std::cout << "Type /leave roomname to enter a room." << std::endl;
-			std::cout << "Type /quit to leave the server." << std::endl;
-			std::cout << "Type /roomname message to broadcast a message to the room." << std::endl;
+			messageHistory << "\033[2J\033[1;1H"; // Clear Screen
+			messageHistory << "Welcome to the chat server, " << cc.m_name << "!" << std::endl;
+			messageHistory << "Type /join roomname to enter a room." << std::endl;
+			messageHistory << "Type /leave roomname to enter a room." << std::endl;
+			messageHistory << "Type /quit to leave the server." << std::endl;
+			messageHistory << "Type /roomname message to broadcast a message to the room." << std::endl;
+			
+			std::cout << messageHistory.str();
 			tryAgain = false;
 		}
 	}
 
 	// Main Loop
 	tryAgain = true;
-	std::string message;	// message
+	std::string message = "";	// message
 	std::string item;		// string iterator
 	std::stringstream ss;	// stringstrea used to split message
 	while (tryAgain) {
@@ -73,14 +79,32 @@ int main(int argc, char** argv) {
 			//theBuffer = cmp.DecodeProtocol(buf);
 			// Copies the buffer received to the class Buffer
 			theBuffer->m_BufferData = std::vector<uint8_t>(&recvbuf[0], &recvbuf[bufLen]);
-			std::cout << theBuffer->ReadStringBE(result);
+			item = theBuffer->ReadStringBE(result);
+			messageHistory << item << std::endl;
 		}
 
-		std::cout << "\nMessage Box: ";
 		// Reads the user console writing
 		//std::cin >> message;
-		std::getline(std::cin, message);
-
+		while (true) {
+			if (_kbhit()) {
+				key = _getch();
+				if (key == 13) {
+					std::cout << messageHistory.str() << std::endl;
+					std::cout << message << std::endl;
+					break;
+				} else if(key == 27){
+					message = "";
+					std::cout << messageHistory.str() << std::endl;
+					std::cout << message << std::endl;
+					break;
+				} else {
+					message += (char)key;
+					std::cout << messageHistory.str() << std::endl;
+					std::cout << message << std::endl;
+				}
+			}
+		}
+		
 		// Conditional to adjust the message to be broadcasted
 		if (message != "") {
 			ss = std::stringstream(message);
@@ -90,7 +114,7 @@ int main(int argc, char** argv) {
 			// Checks its not other channel commands
 			if (roomName != "leave" && roomName != "join" && roomName != "quit") {
 				// Apply Protocolfor /m channalname message
-				message = "/m " + roomName + " " + message.substr(item.size()+1, message.size());
+				message = "/m " + roomName + " " + message.substr(item.size() + 1, message.size());
 			}
 		}
 
@@ -107,7 +131,7 @@ int main(int argc, char** argv) {
 		std::stringstream ss(message);
 		// Breaks first part
 		std::getline(ss, item, ' ');
-		if(item == "/quit")
+		if (item == "/quit")
 			tryAgain = false;
 	}
 
