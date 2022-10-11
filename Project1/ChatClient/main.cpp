@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
 			std::cout << "Type /join roomname to enter a room." << std::endl;
 			std::cout << "Type /leave roomname to enter a room." << std::endl;
 			std::cout << "Type /quit to leave the server." << std::endl;
+			std::cout << "Type /roomname message to broadcast a message to the room." << std::endl;
 			tryAgain = false;
 		}
 	}
@@ -79,9 +80,16 @@ int main(int argc, char** argv) {
 		// Reads the user console writing
 		//std::cin >> message;
 		std::getline(std::cin, message);
-		ss = std::stringstream(message);
-		std::getline(ss, item, ' ');
-		//// Now we are going to replace the cannel name by its ID
+		if (message != "") {
+			ss = std::stringstream(message);
+			std::getline(ss, item, ' ');
+			// Now we are gonna separate the channel name
+			std::string roomName = item.substr(1, item.size());
+			if (roomName != "leave" && roomName != "join" && roomName != "quit") {
+				message = "/m " + roomName + " " + message.substr(item.size()+1, message.size());
+			}
+		}
+		
 		//if (item == "/leave") {
 		//	// Iterator for the roomname roomid map
 		//	std::map<std::string, short>::iterator it;

@@ -1,5 +1,7 @@
 #include "ChatServer.h"
 
+#include <sstream>
+
 #define DEBUG_LOG_ENABLED
 #ifdef DEBUG_LOG_ENABLED
 #define DEBUG_PRINT(x, ...) printf(x, __VA_ARGS__)
@@ -89,13 +91,13 @@ void ChatServer::LifeCycle() {
 					this->LeaveServer(m_chatUsers[i].id);
 					break;
 				case 2 : // Case JOIN_ROOM
-					roomName = theBuffer->ReadStringLE(msgBufLen - 6);		// Reads the roomname { 8 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					roomName = theBuffer->ReadStringLE(msgBufLen - 6);		// Reads the roomname { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
 					roomId = this->JoinRoom(roomName, m_chatUsers[i].id);	// Returns the Room id
 					// Broadcast the new user to the room
 					this->BroadcastMessage(roomId, "["+ roomName +"] " + m_chatUsers[i].name + " has joined the room.");
 					break;
 				case 3 : // Case LEAVE_ROOM
-					roomName = theBuffer->ReadStringLE(msgBufLen - 6);		// Reads the roomname { 8 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					roomName = theBuffer->ReadStringLE(msgBufLen - 6);		// Reads the roomname { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
 					for (int k = 0; k < m_chatRooms.size(); k++) {
 						if (m_chatRooms[k].name == roomName)
 							roomId = m_chatRooms[k].id;
@@ -103,6 +105,17 @@ void ChatServer::LifeCycle() {
 					this->LeaveRoom(m_chatUsers[i].id, roomId);
 					this->BroadcastMessage(roomId, "[" + roomName + "] " + m_chatUsers[i].name + " has left the room.");
 					break;
+				case 4 : // Case MESSAGE
+					roomName = theBuffer->ReadStringLE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					std::stringstream ss(roomName);
+					std::getline(ss, roomName, ' ');
+					std::string message;
+					for (int k = 0; k < m_chatRooms.size(); k++) {
+						if (m_chatRooms[k].name == roomName)
+							roomId = m_chatRooms[k].id;
+					}
+					std::getline(ss, message);
+					this->BroadcastMessage(roomId, "[" + roomName + "] " + m_chatUsers[i].name + ": " + message);
 				}
 			}
 		}

@@ -47,16 +47,15 @@ Buffer* ChatMessageProtocol::ApplyProtocol(const std::string &message, const sho
         bufferData->WriteStringLE(item);            // roomname
 
     }else if (item == "/m") { // Message type MESSAGE
-        std::getline(ss, item, ' ');                // Reads the roomid
-        short roomid = (short)std::stoi(item);
-        std::getline(ss, item, ' ');                // Reads the message
-        finalBufLen = 10 + item.length();           // {int 4bytes | short 2bytes  | short 2bytes | short 2bytes  | char* 1byte*lenght}
-        bufferData = new Buffer(finalBufLen);       // {int buflen | short msgtype | short roomid | short userid  | char* message}
-        bufferData->WriteInt32LE(finalBufLen);      // buffer << final buffer size
-        bufferData->WriteShort16LE(MESSAGE);        // buffer << msgtype
-        bufferData->WriteShort16LE(roomid);         // buffer << roomdid
-        bufferData->WriteShort16LE(userID);         // buffer << userid
-        bufferData->WriteStringLE(item);            // buffer << message
+        std::getline(ss, item, ' ');                // Reads the room name
+        std::string roomname = item;
+        //std::getline(ss, item, ' ');                // Reads the message
+        std::getline(ss, item);
+        finalBufLen = 6 + roomname.length() + 1 + item.length(); // {int 4bytes | short 2bytes  | char* 1byte*lenght | " " | char* 1byte*lenght}
+        bufferData = new Buffer(finalBufLen);                    // {int buflen | short msgtype | char* roomname     | " " | char* message}
+        bufferData->WriteInt32LE(finalBufLen);                   // buffer << final buffer size
+        bufferData->WriteShort16LE(MESSAGE);                     // buffer << msgtype
+        bufferData->WriteStringLE(roomname + " " + item);        // buffer << roomname + " " + message
 
     } else {
         return nullptr;
