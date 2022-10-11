@@ -14,31 +14,54 @@ public:
 	Buffer(size_t size);
 
 	// Accepts Index and Value
-	// Writes the value on the specified index
+	// Writes the LE Int32 value on the specified index
 	void WriteInt32LE(size_t index, int32_t value);
 	// Accepts Value
-	// Writes the value on the latest Write Index
+	// Writes the LE Int32 value on the latest write Index
 	void WriteInt32LE(int32_t value);
+	// Accepts Value
+	// Writes the LE Short16 value on the latest write Index
 	void WriteShort16LE(int16_t value);
+	// Accepts Value
+	// Writes the LE String value on the latest write Index
 	void WriteStringLE(std::string value);
-
+	// Accepts Value
+	// Writes the BE Int32 value on the latest write Index
 	void WriteInt32BE(int32_t value);
+	// Accepts Value
+	// Writes the BE Short16 value on the latest write Index
 	void WriteShort16BE(int16_t value);
+	// Accepts Value
+	// Writes the BE String value on the latest write Index
 	void WriteString8BE(int8_t* value, int lenght);
 
 	// Accepts Index
-	// Reads the value on the specified index
-	// Returns the value
+	// Reads the LE Int32 value on the latest Read Index
+	// Returns the Int32
 	uint32_t ReadUInt32LE(size_t index);
 	// Accepts nothing
-	// Reads the value on the latest Read Index
-	// Returns the value
+	// Reads the LE Int32 value on the latest Read Index
+	// Returns the Int32
 	uint32_t ReadUInt32LE();
+	// Accepts nothing
+	// Reads the LE Short16 value on the latest Read Index
+	// Returns the Short16
 	int16_t	ReadShort16LE();
+	// Accepts String size
+	// Reads the LE String value on the latest Read Index
+	// Returns the String
 	std::string ReadStringLE(size_t lenght);
-
+	// Accepts nothing
+	// Reads the BE Int32 value on the latest Read Index
+	// Returns the Int32
 	uint32_t ReadUInt32BE();
+	// Accepts nothing
+	// Reads the BE Short16 value on the latest Read Index
+	// Returns the Short16
 	int16_t	ReadShort16BE();
+	// Accepts String size
+	// Reads the BE String value on the latest Read Index
+	// Returns the String
 	int8_t* ReadString8BE();
 
 private:

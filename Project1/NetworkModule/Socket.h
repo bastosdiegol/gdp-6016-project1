@@ -34,8 +34,5 @@ protected:
 	void Open();
 	void Bind();
 	void Listen();
-	void Accept();
-	void Read();
-	void Write();
 };
 

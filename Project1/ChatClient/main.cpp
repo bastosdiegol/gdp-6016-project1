@@ -60,11 +60,11 @@ int main(int argc, char** argv) {
 
 	// Main Loop
 	tryAgain = true;
-	std::string message;
-	std::string item;
-	std::stringstream ss;
+	std::string message;	// message
+	std::string item;		// string iterator
+	std::stringstream ss;	// stringstrea used to split message
 	while (tryAgain) {
-		bufLen = 128;
+		bufLen = 128;		// max message len 
 		char recvbuf[128]{};
 		result = recv(cc.m_socket, recvbuf, bufLen, 0);
 
@@ -80,28 +80,20 @@ int main(int argc, char** argv) {
 		// Reads the user console writing
 		//std::cin >> message;
 		std::getline(std::cin, message);
+
+		// Conditional to adjust the message to be broadcasted
 		if (message != "") {
 			ss = std::stringstream(message);
 			std::getline(ss, item, ' ');
-			// Now we are gonna separate the channel name
+			// Now we are gonna separate the channel name from the /
 			std::string roomName = item.substr(1, item.size());
+			// Checks its not other channel commands
 			if (roomName != "leave" && roomName != "join" && roomName != "quit") {
+				// Apply Protocolfor /m channalname message
 				message = "/m " + roomName + " " + message.substr(item.size()+1, message.size());
 			}
 		}
-		
-		//if (item == "/leave") {
-		//	// Iterator for the roomname roomid map
-		//	std::map<std::string, short>::iterator it;
-		//	// Reads the roomname
-		//	std::getline(ss, item, ' ');
-		//	// Finds it on the map
-		//	it = cc.m_rooms.find(item);
-		//	if (it != cc.m_rooms.end()) {
-		//		// New message with ID instead
-		//		message = "/leave " + it->second;
-		//	}
-		//}
+
 		// Applies the Message Protocol to the message typed by the usar
 		theBuffer = cmp.ApplyProtocol(message, cc.m_id);
 		if (theBuffer != nullptr) {

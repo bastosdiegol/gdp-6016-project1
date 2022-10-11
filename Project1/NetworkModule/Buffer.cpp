@@ -11,7 +11,7 @@ Buffer::Buffer(size_t size) {
 }
 
 // Accepts Index and Value
-// Writes the value on the specified index
+// Writes the LE Int32 value on the specified index
 void Buffer::WriteInt32LE(size_t index, int32_t value) {
 	// Checks if the Write index is valid to Write an int32_t to the buffer
 	if ((index + 4) > m_BufferSize) {
@@ -27,7 +27,7 @@ void Buffer::WriteInt32LE(size_t index, int32_t value) {
 }
 
 // Accepts Value
-// Writes the value on the latest Write Index
+// Writes the LE Int32 value on the latest write Index
 void Buffer::WriteInt32LE(int32_t value) {
 	// Checks if the Write index is at the end of the buffer
 	if (m_BufferSize == m_WriteBufferIndex) {
@@ -42,6 +42,8 @@ void Buffer::WriteInt32LE(int32_t value) {
 	m_WriteBufferIndex++;
 }
 
+// Accepts Value
+// Writes the LE Short16 value on the latest write Index
 void Buffer::WriteShort16LE(int16_t value) {
 	// Checks if the Write index is at the end of the buffer
 	if (m_BufferSize == m_WriteBufferIndex) {
@@ -54,6 +56,8 @@ void Buffer::WriteShort16LE(int16_t value) {
 	m_WriteBufferIndex++;
 }
 
+// Accepts Value
+// Writes the LE String value on the latest write Index
 void Buffer::WriteStringLE(std::string value) {
 	// Checks if the buffer array has space for the string
 	if ((m_BufferSize - m_WriteBufferIndex) < value.size()) {
@@ -67,8 +71,8 @@ void Buffer::WriteStringLE(std::string value) {
 }
 
 // Accepts Index
-// Reads the value on the specified index
-// Returns the value
+// Reads the LE Int32 value on the latest Read Index
+// Returns the Int32
 uint32_t Buffer::ReadUInt32LE(size_t index) {
 
 	uint32_t value = m_BufferData[index];
@@ -81,8 +85,8 @@ uint32_t Buffer::ReadUInt32LE(size_t index) {
 }
 
 // Accepts nothing
-// Reads the value on the latest Read Index
-// Returns the value
+// Reads the LE Int32 value on the latest Read Index
+// Returns the Int32
 uint32_t Buffer::ReadUInt32LE() {
 
 	uint32_t value = m_BufferData[m_ReadBufferIndex];
@@ -94,6 +98,9 @@ uint32_t Buffer::ReadUInt32LE() {
 	return value;
 }
 
+// Accepts nothing
+// Reads the LE Short16 value on the latest Read Index
+// Returns the Short16
 int16_t Buffer::ReadShort16LE() {
 
 	int16_t value = m_BufferData[m_ReadBufferIndex];
@@ -103,6 +110,9 @@ int16_t Buffer::ReadShort16LE() {
 	return value;
 }
 
+// Accepts String size
+// Reads the LE String value on the latest Read Index
+// Returns the String
 std::string Buffer::ReadStringLE(size_t lenght) {
 	std::string value;
 	int startingPoint = m_ReadBufferIndex + lenght -1;
