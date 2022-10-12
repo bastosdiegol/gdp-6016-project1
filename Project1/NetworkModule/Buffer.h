@@ -13,6 +13,10 @@ public:
 	// Default Constructor
 	Buffer(size_t size);
 
+	// Stores the index of Write and Read Operations
+	size_t m_WriteBufferIndex;
+	size_t m_ReadBufferIndex;
+
 	// Accepts Index and Value
 	// Writes the LE Int32 value on the specified index
 	void WriteInt32LE(size_t index, int32_t value);
@@ -65,7 +69,4 @@ public:
 	std::string ReadStringBE(size_t lenght);
 
 private:
-	// Stores the index of Write and Read Operations
-	size_t m_WriteBufferIndex;
-	size_t m_ReadBufferIndex;
 };

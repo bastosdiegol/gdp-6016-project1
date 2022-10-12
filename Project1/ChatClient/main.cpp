@@ -11,9 +11,15 @@ int main(int argc, char** argv) {
 	ChatClient			cc;
 	Buffer*				theBuffer;
 	ChatMessageProtocol cmp;
-	int					result;
+	int					result;		// Socket result
 	std::stringstream   messageHistory;
-	int key;
+	std::stringstream	ss;			// stringstrea used to split message
+	std::string			item;		// string iterator
+	std::string			message;	// broadcast message
+	std::string			messageTemp;// message being typed
+	int					key;		// Keyboard key pressed
+	bool				tryAgain = true; // main loops exit variable
+	bool				newMessage = false;
 
 	// Beginning of the Program - Ask username
 	std::cout << "Enter your username: ";
@@ -34,7 +40,6 @@ int main(int argc, char** argv) {
 	send(cc.m_socket, buf, bufLen, 0);
 
 	// Tries to receive the User ID from the ChatServer
-	bool tryAgain = true;
 	while (tryAgain) {
 		int userid = recv(cc.m_socket, buf, bufLen, 0);
 		if (userid == SOCKET_ERROR) {
@@ -63,17 +68,20 @@ int main(int argc, char** argv) {
 			tryAgain = false;
 		}
 	}
-
-	// Main Loop
+	// **********
+	// 
+	//	Main Loop
+	// 
+	// **********
 	tryAgain = true;
-	std::string message = "";	// message
-	std::string item;		// string iterator
-	std::stringstream ss;	// stringstrea used to split message
+	message = "";	// message
+	messageTemp = "";
 	while (tryAgain) {
 		bufLen = 128;		// max message len 
 		char recvbuf[128]{};
-		result = recv(cc.m_socket, recvbuf, bufLen, 0);
 
+		// Checks if theres new message from the server
+		result = recv(cc.m_socket, recvbuf, bufLen, 0);
 		if (result != -1) {
 			Buffer* theBuffer = new Buffer(result);
 			//theBuffer = cmp.DecodeProtocol(buf);
@@ -81,29 +89,32 @@ int main(int argc, char** argv) {
 			theBuffer->m_BufferData = std::vector<uint8_t>(&recvbuf[0], &recvbuf[bufLen]);
 			item = theBuffer->ReadStringBE(result);
 			messageHistory << item << std::endl;
+			newMessage = true;
 		}
 
 		// Reads the user console writing
 		//std::cin >> message;
-		while (true) {
-			if (_kbhit()) {
-				key = _getch();
-				if (key == 13) {
-					std::cout << messageHistory.str() << std::endl;
-					std::cout << message << std::endl;
-					break;
-				} else if(key == 27){
-					message = "";
-					std::cout << messageHistory.str() << std::endl;
-					std::cout << message << std::endl;
-					break;
-				} else {
-					message += (char)key;
-					std::cout << messageHistory.str() << std::endl;
-					std::cout << message << std::endl;
-				}
-			}
+		//while (true) {
+		if(newMessage){
+			std::cout << messageHistory.str() << std::endl;
+			std::cout << messageTemp << std::endl;
+			newMessage = false;
 		}
+		if (_kbhit()) {
+			key = _getch();
+			if (key == 13) { // ENTER KEY
+				message = messageTemp;
+				messageTemp = "";
+				//break;
+			} else if(key == 27){ // ESCAPE KEY
+				messageTemp = "";
+				//break;
+			} else {
+				messageTemp += (char)key;
+			}
+			newMessage = true;
+		}
+		//}
 		
 		// Conditional to adjust the message to be broadcasted
 		if (message != "") {
@@ -116,27 +127,25 @@ int main(int argc, char** argv) {
 				// Apply Protocolfor /m channalname message
 				message = "/m " + roomName + " " + message.substr(item.size() + 1, message.size());
 			}
-		}
 
-		// Applies the Message Protocol to the message typed by the usar
-		theBuffer = cmp.ApplyProtocol(message, cc.m_id);
-		if (theBuffer != nullptr) {
-			// Updates buffer and buffer lenght variables
-			buf = (char*)&theBuffer->m_BufferData[0];
-			bufLen = theBuffer->m_BufferSize;
-			// Sends the message to the server
-			send(cc.m_socket, buf, bufLen, 0);
+			// Applies the Message Protocol to the message typed by the usar
+			theBuffer = cmp.ApplyProtocol(message, cc.m_id);
+			if (theBuffer != nullptr) {
+				// Updates buffer and buffer lenght variables
+				buf = (char*)&theBuffer->m_BufferData[0];
+				bufLen = theBuffer->m_BufferSize;
+				// Sends the message to the server
+				send(cc.m_socket, buf, bufLen, 0);
+			}
+			// Transform into stringstream
+			std::stringstream ss(message);
+			// Breaks first part
+			std::getline(ss, item, ' ');
+			if (item == "/quit")
+				tryAgain = false;
+
+			message = ""; // CLEARS the message
 		}
-		// Transform into stringstream
-		std::stringstream ss(message);
-		// Breaks first part
-		std::getline(ss, item, ' ');
-		if (item == "/quit")
-			tryAgain = false;
 	}
-
-
-	system("pause");
 	cc.Shutdown();
-
 }

@@ -55,7 +55,7 @@ void ChatServer::LifeCycle() {
 			if (FD_ISSET(m_chatUsers[i].userSocket, &m_socketsReadyForReading)) {
 				
 				char buf[buflen]{};
-				theBuffer = new Buffer(128);
+				//theBuffer = new Buffer(128);
 
 				int recvResult = recv(m_chatUsers[i].userSocket, buf, buflen, 0);
 
@@ -71,6 +71,8 @@ void ChatServer::LifeCycle() {
 				//theBuffer = cmp.DecodeProtocol(buf);
 				// Copies the buffer received to the class Buffer
 				theBuffer->m_BufferData = std::vector<uint8_t>(&buf[0], &buf[buflen]);
+				// Resets the Read Index
+				theBuffer->m_ReadBufferIndex = 0;
 				// Reads the size of the buffer
 				msgBufLen = theBuffer->ReadUInt32BE();
 				// Reads the type of the message
@@ -82,10 +84,12 @@ void ChatServer::LifeCycle() {
 				case 0 : // Case JOIN_SERVER
 					userName = theBuffer->ReadStringBE(msgBufLen - 6);				// Reads the username { 6 = 4 (buflen) + 2 (msgtype) ... username }
 					userId = this->JoinServer(userName, m_chatUsers[i].userSocket); // Adds the user on the server
-					theBuffer = new Buffer(2);										// Prepares a Buffer for the user id
+					//theBuffer = new Buffer(2);									// Prepares a Buffer for the user id
+					theBuffer->m_BufferData = std::vector<uint8_t>(2);				// Prepares a Buffer for the user id
+					theBuffer->m_WriteBufferIndex = 0;								// Resets the write index
 					theBuffer->WriteShort16BE(m_chatUsers[i].id);					// Writes the ID on the buffer
 					responseBuf = (char*)&theBuffer->m_BufferData[0];				// Converts to the type accepted by send()
-					send(m_chatUsers[i].userSocket, responseBuf, recvResult, 0);
+					send(m_chatUsers[i].userSocket, responseBuf, recvResult, 0);	// Sends back the user ID
 					break;
 				case 1 : // Case LEAVE_SERVER
 					this->LeaveServer(m_chatUsers[i].id);
