@@ -6,6 +6,7 @@
 #include <vector>
 #include <sstream>
 #include <conio.h>
+#include <algorithm>
 
 int main(int argc, char** argv) {
 	ChatClient			cc;
@@ -20,6 +21,7 @@ int main(int argc, char** argv) {
 	int					key;		// Keyboard key pressed
 	bool				tryAgain = true; // main loops exit variable
 	bool				newMessage = false;
+	std::vector<std::string>::iterator it; // Iterator for roomlookup
 
 	// Beginning of the Program - Ask username
 	std::cout << "Enter your username: ";
@@ -119,13 +121,31 @@ int main(int argc, char** argv) {
 		// Conditional to adjust the message to be broadcasted
 		if (message != "") {
 			ss = std::stringstream(message);
-			std::getline(ss, item, ' ');
+			std::getline(ss, item, ' '); // gets the first command
+			if (item == "/quit"){ // leaving the loop
+				tryAgain = false;
+				continue;
+			}
 			// Now we are gonna separate the channel name from the /
 			std::string roomName = item.substr(1, item.size());
 			// Checks its not other channel commands
 			if (roomName != "leave" && roomName != "join" && roomName != "quit") {
-				// Apply Protocolfor /m channalname message
-				message = "/m " + roomName + " " + message.substr(item.size() + 1, message.size());
+				if (std::find(cc.m_rooms.begin(), cc.m_rooms.end(), roomName) != cc.m_rooms.end()) // tries to find if the user is inside the room
+					// Apply Protocolfor /m channalname message
+					message = "/m " + roomName + " " + message.substr(item.size() + 1, message.size());
+				else
+					message = "";
+			} else if (roomName == "join") {
+				std::getline(ss, item, ' '); // gets the roomname
+				cc.m_rooms.push_back(item);
+			} else if (roomName == "leave") {
+				std::getline(ss, item, ' '); // gets the roomname
+				it = std::find(cc.m_rooms.begin(), cc.m_rooms.end(), item);
+				if (it != cc.m_rooms.end()) {
+					cc.m_rooms.erase(it);
+					messageHistory << "You have left the [" << item << "] room." << std::endl;
+					newMessage = true;
+				}
 			}
 
 			// Applies the Message Protocol to the message typed by the usar
@@ -141,9 +161,7 @@ int main(int argc, char** argv) {
 			std::stringstream ss(message);
 			// Breaks first part
 			std::getline(ss, item, ' ');
-			if (item == "/quit")
-				tryAgain = false;
-
+			
 			message = ""; // CLEARS the message
 		}
 	}
