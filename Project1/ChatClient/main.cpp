@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
 				message = messageTemp;
 				messageTemp = "";
 				//break;
-			} else if(key == 27){ // ESCAPE KEY
+			} else if(key == 27 || key == 8){ // ESCAPE KEY
 				messageTemp = "";
 				//break;
 			} else {
