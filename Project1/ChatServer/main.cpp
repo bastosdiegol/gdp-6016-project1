@@ -4,8 +4,7 @@
 #include "Buffer.h"
 #include <iostream>
 
-int main(int argc, char** argv) {
-
+void protoTest() {
 	auth::ChatServerRequest serverRequest;
 	serverRequest.set_type(auth::ChatServerRequest::AUTHENTICATE);
 	serverRequest.set_id(1);
@@ -31,6 +30,11 @@ int main(int argc, char** argv) {
 	std::cout << "ID: " << deserializedServerRequest.id() << std::endl;
 	std::cout << "E-mail: " << deserializedServerRequest.email() << std::endl;
 	std::cout << "Password: " << deserializedServerRequest.password() << std::endl;
+}
+
+int main(int argc, char** argv) {
+
+	protoTest();
 
 	//ChatServer cs;
 	//cs.StartUp();
