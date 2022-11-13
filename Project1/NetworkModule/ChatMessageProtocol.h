@@ -18,6 +18,8 @@ public:
 	const MESSAGE_TYPE JOIN_ROOM	= 2;
 	const MESSAGE_TYPE LEAVE_ROOM	= 3;
 	const MESSAGE_TYPE MESSAGE		= 4;
+	const MESSAGE_TYPE LOGIN		= 5;
+	const MESSAGE_TYPE REGISTER		= 6;
 
 	ChatMessageProtocol() : m_lenght(0)
 							, m_msgType(-1)

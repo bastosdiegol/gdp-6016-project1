@@ -62,6 +62,30 @@ Buffer* ChatMessageProtocol::ApplyProtocol(const std::string &message, const sho
         bufferData->WriteShort16BE(MESSAGE);                     // buffer << msgtype
         bufferData->WriteStringBE(roomname + " " + item);        // buffer << roomname + " " + message
 
+    }else if (item == "/register") { // Message type MESSAGE
+        std::getline(ss, item, ' ');                // Reads the email
+        bufferData->m_WriteBufferIndex = 0;         // Resets the Write index
+        std::string email = item;
+        //std::getline(ss, item, ' ');                // Reads the password
+        std::getline(ss, item);
+        finalBufLen = 6 + email.length() + 1 + item.length(); // {int 4bytes | short 2bytes  | char* 1byte*lenght | " " | char* 1byte*lenght}
+        //bufferData = new Buffer(finalBufLen);                  // {int buflen | short msgtype | char* email     | " " | char* password}
+        bufferData->WriteInt32BE(finalBufLen);                   // buffer << final buffer size
+        bufferData->WriteShort16BE(REGISTER);                    // buffer << msgtype
+        bufferData->WriteStringBE(email + " " + item);           // buffer << email + " " + password
+
+    } else if (item == "/login") { // Message type MESSAGE
+        std::getline(ss, item, ' ');                // Reads the email
+        bufferData->m_WriteBufferIndex = 0;         // Resets the Write index
+        std::string email = item;
+        //std::getline(ss, item, ' ');                // Reads the password
+        std::getline(ss, item);
+        finalBufLen = 6 + email.length() + 1 + item.length(); // {int 4bytes | short 2bytes  | char* 1byte*lenght | " " | char* 1byte*lenght}
+        //bufferData = new Buffer(finalBufLen);                  // {int buflen | short msgtype | char* email     | " " | char* password}
+        bufferData->WriteInt32BE(finalBufLen);                   // buffer << final buffer size
+        bufferData->WriteShort16BE(LOGIN);                       // buffer << msgtype
+        bufferData->WriteStringBE(email + " " + item);           // buffer << email + " " + password
+
     } else {
         return nullptr;
     }
