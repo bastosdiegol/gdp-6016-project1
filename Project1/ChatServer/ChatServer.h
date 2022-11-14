@@ -26,8 +26,6 @@ private:
 	void LifeCycle();	
 	// Checks if theres a new Chat User trying to connect to the server
 	void Accept();
-	void Read();
-	void Write();
 public:
 	//fd_set					m_activeSockets;
 	fd_set					m_socketsReadyForReading;
@@ -59,5 +57,14 @@ public:
 	std::string ListRooms();
 	// Sends a message submited by a user to all users of the same channel
 	void BroadcastMessage(short roomID, std::string message);
+	/// <summary>
+	/// Sends a protoMessage to Auth Server
+	/// To register a new user
+	/// </summary>
+	/// <param name="email">Receives user email</param>
+	/// <param name="password">Receives user password</param>
+	/// <returns>Returns </returns>
+	bool RegisterNewUser(std::string email, std::string password);
+	bool AuthenticateUser(std::string email, std::string password);
 };
 

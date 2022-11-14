@@ -12,14 +12,24 @@ public:
 	short			m_senderID;
 	short			m_roomID;
 	std::string		m_message;
+	
+	enum MESSAGE_TYPE {
+		JOIN_SERVER,
+		LEAVE_SERVER,
+		JOIN_ROOM,
+		LEAVE_ROOM,
+		MESSAGE,
+		LOGIN,
+		REGISTER
+	};
 
-	const MESSAGE_TYPE JOIN_SERVER	= 0;
-	const MESSAGE_TYPE LEAVE_SERVER	= 1;
-	const MESSAGE_TYPE JOIN_ROOM	= 2;
-	const MESSAGE_TYPE LEAVE_ROOM	= 3;
-	const MESSAGE_TYPE MESSAGE		= 4;
-	const MESSAGE_TYPE LOGIN		= 5;
-	const MESSAGE_TYPE REGISTER		= 6;
+	//const MESSAGE_TYPE JOIN_SERVER	= 0;
+	//const MESSAGE_TYPE LEAVE_SERVER	= 1;
+	//const MESSAGE_TYPE JOIN_ROOM	= 2;
+	//const MESSAGE_TYPE LEAVE_ROOM	= 3;
+	//const MESSAGE_TYPE MESSAGE		= 4;
+	//const MESSAGE_TYPE LOGIN		= 5;
+	//const MESSAGE_TYPE REGISTER		= 6;
 
 	ChatMessageProtocol() : m_lenght(0)
 							, m_msgType(-1)

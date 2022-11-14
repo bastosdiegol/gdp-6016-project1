@@ -1,4 +1,5 @@
 #include "ChatServer.h"
+#include "ChatMessageProtocol.h"
 
 #include <sstream>
 
@@ -23,6 +24,9 @@ void ChatServer::LifeCycle() {
 	short userId;			// Chat user id
 	std::string roomName;	// room name
 	short roomId;			// room id
+	std::string message;
+	std::string email;
+	std::string password;
 
 	DEBUG_PRINT("ChatServer::LifeCycle()\n");
 	while (m_serverStatus) {
@@ -83,7 +87,7 @@ void ChatServer::LifeCycle() {
 				char* responseBuf;
 
 				switch (msgType) {
-				case 0 : // Case JOIN_SERVER
+				case ChatMessageProtocol::MESSAGE_TYPE::JOIN_SERVER :
 					userName = theBuffer->ReadStringBE(msgBufLen - 6);				// Reads the username { 6 = 4 (buflen) + 2 (msgtype) ... username }
 					userId = this->JoinServer(userName, m_chatUsers[i].userSocket); // Adds the user on the server
 					//theBuffer = new Buffer(2);									// Prepares a Buffer for the user id
@@ -93,16 +97,16 @@ void ChatServer::LifeCycle() {
 					responseBuf = (char*)&theBuffer->m_BufferData[0];				// Converts to the type accepted by send()
 					send(m_chatUsers[i].userSocket, responseBuf, recvResult, 0);	// Sends back the user ID
 					break;
-				case 1 : // Case LEAVE_SERVER
+				case ChatMessageProtocol::MESSAGE_TYPE::LEAVE_SERVER :
 					this->LeaveServer(m_chatUsers[i].id);
 					break;
-				case 2 : // Case JOIN_ROOM
+				case ChatMessageProtocol::MESSAGE_TYPE::JOIN_ROOM :
 					roomName = theBuffer->ReadStringBE(msgBufLen - 6);		// Reads the roomname { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
 					roomId = this->JoinRoom(roomName, m_chatUsers[i].id);	// Returns the Room id
 					// Broadcast the new user to the room
 					this->BroadcastMessage(roomId, "["+ roomName +"] " + m_chatUsers[i].name + " has joined the room.");
 					break;
-				case 3 : // Case LEAVE_ROOM
+				case ChatMessageProtocol::MESSAGE_TYPE::LEAVE_ROOM :
 					roomName = theBuffer->ReadStringBE(msgBufLen - 6);		// Reads the roomname { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
 					for (int k = 0; k < m_chatRooms.size(); k++) {
 						if (m_chatRooms[k].name == roomName)
@@ -111,17 +115,56 @@ void ChatServer::LifeCycle() {
 					this->LeaveRoom(m_chatUsers[i].id, roomId);
 					this->BroadcastMessage(roomId, "[" + roomName + "] " + m_chatUsers[i].name + " has left the room.");
 					break;
-				case 4 : // Case MESSAGE
-					roomName = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
-					std::stringstream ss(roomName);
-					std::getline(ss, roomName, ' ');
-					std::string message;
-					for (int k = 0; k < m_chatRooms.size(); k++) {
-						if (m_chatRooms[k].name == roomName)
-							roomId = m_chatRooms[k].id;
+				case ChatMessageProtocol::MESSAGE_TYPE::MESSAGE :
+					{
+						roomName = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+						std::stringstream ss(roomName);
+						std::getline(ss, roomName, ' ');
+						for (int k = 0; k < m_chatRooms.size(); k++) {
+							if (m_chatRooms[k].name == roomName)
+								roomId = m_chatRooms[k].id;
+						}
+						std::getline(ss, message);
+						this->BroadcastMessage(roomId, "[" + roomName + "] " + m_chatUsers[i].name + ": " + message);
+						break;
 					}
-					std::getline(ss, message);
-					this->BroadcastMessage(roomId, "[" + roomName + "] " + m_chatUsers[i].name + ": " + message);
+				case ChatMessageProtocol::MESSAGE_TYPE::REGISTER :
+					{
+						email = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+						std::stringstream ss(email);
+						std::getline(ss, email, ' ');
+						std::getline(ss, password);
+						this->RegisterNewUser(email, password);
+						// ----------
+						// TODO: Treatment of RegisterNewUser return and feedback to the user trying to register
+						//message = "Could not register new user.";
+						msgBufLen = 6;
+						Buffer respBuff(msgBufLen);
+						respBuff.WriteInt32BE(msgBufLen);
+						respBuff.WriteShort16BE(-1);
+						//respBuff.WriteStringBE(message);
+						responseBuf = (char*)&respBuff.m_BufferData[0];
+						send(m_chatUsers[i].userSocket, responseBuf, respBuff.m_BufferSize, 0);
+						break;
+					}
+				case ChatMessageProtocol::MESSAGE_TYPE::LOGIN :
+					{
+						email = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+						std::stringstream ss(email);
+						std::getline(ss, email, ' ');
+						std::getline(ss, password);
+						this->AuthenticateUser(email, password);
+						// ----------
+						// TODO: Treatment of RegisterNewUser return and feedback to the user trying to login
+						//message = "Could not authenticate new user.";
+						msgBufLen = 6;
+						Buffer respBuff(msgBufLen);
+						respBuff.WriteInt32BE(msgBufLen);
+						respBuff.WriteShort16BE(-1);
+						//responseBuf = (char*)&respBuff.m_BufferData[0];
+						send(m_chatUsers[i].userSocket, (char*)&respBuff.m_BufferData[0], respBuff.m_BufferSize, 0);
+						break;
+					}
 				}
 			}
 		}
@@ -291,6 +334,18 @@ void ChatServer::BroadcastMessage(short roomID, std::string message) {
 	}
 }
 
+bool ChatServer::RegisterNewUser(std::string email, std::string password) {
+	DEBUG_PRINT("ChatServer::RegisterNewUser(%s, %s)\n", email, password);
+	// TODO: Create new ProtoMessage and attempt to register a new user
+	return false;
+}
+
+bool ChatServer::AuthenticateUser(std::string email, std::string password) {
+	DEBUG_PRINT("ChatServer::AuthenticateUser(%s, %s)\n", email, password);
+	// TODO: Create new ProtoMessage and attempt to login a new user
+	return false;
+}
+
 // Checks if theres a new Chat User trying to connect to the server
 void ChatServer::Accept() {
 	//DEBUG_PRINT("ChatServer::Accept()\n");
@@ -312,12 +367,4 @@ void ChatServer::Accept() {
 			m_userIdIndex++;
 		}
 	}
-}
-
-void ChatServer::Read() {
-	DEBUG_PRINT("ChatServer::Read()\n");
-}
-
-void ChatServer::Write() {
-	DEBUG_PRINT("ChatServer::Write()\n");
 }

@@ -26,18 +26,23 @@ int main(int argc, char** argv) {
 	char*				buf;
 	int					bufLen;
 
+	bufLen = 128;
+	buf = new char[bufLen];
+	theBuffer = new Buffer(bufLen);
 
 	// Connects to the ChatServer
 	cc.StartUp("127.0.0.1");
 	std::cout << "Welcome to the Chat Application!" << std::endl;
 
-	while (loggedIn != false) {
-		char choice;
+	while (loggedIn == false) {
+		char choice = 0;
 		std::string email;
 		std::string password;
-		std::cout << "Press 1 to Sing in." << std::endl;
-		std::cout << "Press 2 to Sing up." << std::endl;
-		std::cin >> choice;
+		while (choice != '1' && choice != '2') {
+			std::cout << "Press 1 to Sing in." << std::endl;
+			std::cout << "Press 2 to Sing up." << std::endl;
+			std::cin >> choice;
+		}
 		std::cout << "Enter you email:" << std::endl;
 		std::cin >> email;
 		std::cout << "Enter you password:" << std::endl;
@@ -50,60 +55,67 @@ int main(int argc, char** argv) {
 		} else if (choice == '2') {
 			message = "/register " + email + " " + password;
 			theBuffer = cmp.ApplyProtocol(message, -1); // No ID yet
-		}
-		// Checks Buffer integrity
-		if (theBuffer != nullptr) {
-			// Updates buffer and buffer lenght variables
-			buf = (char*)&theBuffer->m_BufferData[0];
-			bufLen = theBuffer->m_BufferSize;
-			// Sends the message to the server
-			send(cc.m_socket, buf, bufLen, 0);
-		}
-		// Receives server response for autenthication
-		int userid = recv(cc.m_socket, buf, bufLen, 0);
-		if (userid == SOCKET_ERROR) {
-			if (WSAGetLastError() == WSAEWOULDBLOCK) {
-			} else {
-				printf("recv failed with error: %d\n", WSAGetLastError());
-				closesocket(cc.m_socket);
-				WSACleanup();
-				return 1;
-			}
 		} else {
-			// Copies the buffer received to the class Buffer
-			theBuffer->m_BufferData = std::vector<uint8_t>(&buf[0], &buf[bufLen]);
-			// Reads pack size
-			int packSize = theBuffer->ReadUInt32BE();
-			// Reads the userid
-			userid = theBuffer->ReadShort16BE();
-			// Reads Authentication message
-			std::string authResponseMessage = theBuffer->ReadStringBE(packSize - 6); // 6 = Int + Short
-			// Checks userid integrity
-			if (userid == -1) {
-				// Auth Failed, display message
-				std::cout << authResponseMessage;
+			continue;
+		}
+		
+		// Updates buffer and buffer lenght variables
+		buf = (char*)&theBuffer->m_BufferData[0];
+		//bufLen = theBuffer->m_BufferSize;
+		// Sends the message to the server
+		send(cc.m_socket, buf, theBuffer->m_BufferSize, 0);
+		result = 1;
+		while (result > 0) {
+			std::cout << "result = " << result << std::endl;
+			// Receives server response for autenthication
+			int result = recv(cc.m_socket, buf, bufLen, 0);
+			if (result == SOCKET_ERROR) {
+				if (WSAGetLastError() == WSAEWOULDBLOCK) {
+				} else {
+					printf("recv failed with error: %d\n", WSAGetLastError());
+					closesocket(cc.m_socket);
+					WSACleanup();
+					return 1;
+				}
 			} else {
-				// Auth succeded, saves userid leaves loop
-				cc.m_id = userid;
-				loggedIn = true;
+				// Copies the buffer received to the class Buffer
+				theBuffer->m_BufferData = std::vector<uint8_t>(&buf[0], &buf[6]);
+				theBuffer->m_ReadBufferIndex = 0;
+				// Reads pack size
+				int packSize = theBuffer->ReadUInt32BE();
+				// Reads the userid
+				int userid = theBuffer->ReadShort16BE();
+				// Checks userid integrity
+				if (userid == -1) {
+					// TODO: Treatment of Auth/Register failure
+					// Auth Failed, display message
+					std::cout << "Could not authenticate or register\n";
+					break;
+				} else {
+					// Auth succeded, saves userid leaves loop
+					cc.m_id = userid;
+					loggedIn = true;
+					break;
+				}
 			}
 		}
+		
 	}
-	// Beginning of the Program - Ask username
-	std::cout << "Enter your username: ";
-	std::cin >> cc.m_name;
-	// Writes the username on the Buffer class
-	// Uses the Apply Protocol to comunicate to the Chat Server
-	theBuffer = cmp.ApplyProtocol("/name " + cc.m_name, cc.m_id);
+	//// Beginning of the Program - Ask username
+	//std::cout << "Enter your username: ";
+	//std::cin >> cc.m_name;
+	//// Writes the username on the Buffer class
+	//// Uses the Apply Protocol to comunicate to the Chat Server
+	//theBuffer = cmp.ApplyProtocol("/name " + cc.m_name, cc.m_id);
 
 
 	//cc.Write((char*)&theBuffer->m_BufferData, theBuffer->m_BufferSize);
 	// Converts the Data from the Buffer Class Into variable accepted by send()
-	buf = (char*)&theBuffer->m_BufferData[0];
-	bufLen = theBuffer->m_BufferSize;
-
-	// Sends the username to the server
-	send(cc.m_socket, buf, bufLen, 0);
+	//buf = (char*)&theBuffer->m_BufferData[0];
+	//bufLen = theBuffer->m_BufferSize;
+	//
+	//// Sends the username to the server
+	//send(cc.m_socket, buf, bufLen, 0);
 
 	// Tries to receive the User ID from the ChatServer
 	while (tryAgain) {
@@ -142,13 +154,12 @@ int main(int argc, char** argv) {
 	message = "";	// message
 	messageTemp = "";
 	while (tryAgain) {
-		bufLen = 128;		// max message len 
 		char recvbuf[128]{};
 
 		// Checks if theres new message from the server
 		result = recv(cc.m_socket, recvbuf, bufLen, 0);
 		if (result != -1) {
-			Buffer* theBuffer = new Buffer(result);
+			theBuffer = new Buffer(result);
 			//theBuffer = cmp.DecodeProtocol(buf);
 			// Copies the buffer received to the class Buffer
 			theBuffer->m_BufferData = std::vector<uint8_t>(&recvbuf[0], &recvbuf[bufLen]);

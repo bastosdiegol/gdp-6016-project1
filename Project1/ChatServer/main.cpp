@@ -34,11 +34,11 @@ void protoTest() {
 
 int main(int argc, char** argv) {
 
-	protoTest();
+	//protoTest();
 
-	//ChatServer cs;
-	//cs.StartUp();
-	//cs.Shutdown();
+	ChatServer cs;
+	cs.StartUp();
+	cs.Shutdown();
 
 	return 0;
 }
