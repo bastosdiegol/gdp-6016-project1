@@ -13,6 +13,8 @@ public:
 	struct timeval			m_tv;
 	SOCKET					m_chatServerSocket;
 
+	AuthServer(const char* port) : Socket::Socket(port) {}
+
 	void StartUp();
 	void Shutdown();
 

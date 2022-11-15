@@ -8,12 +8,12 @@
 #include <stdio.h>
 #include <stdexcept>
 
-#define DEFAULT_PORT "5555"
+//#define DEFAULT_PORT "5555"
 
 class Socket{
 public:
 	// Constructors
-	Socket();
+	Socket(const char* port="5555");
 	// Destructor
 	~Socket();
 

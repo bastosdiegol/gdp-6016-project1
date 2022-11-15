@@ -9,9 +9,9 @@
 #define DEBUG_PRINT(x)
 #endif
 
-Socket::Socket(){
+Socket::Socket(const char* socket){
 	DEBUG_PRINT("Socket::Socket()\n");
-	m_port = (char*)DEFAULT_PORT;
+	m_port = (char*)socket;
 	info = nullptr;
 	m_socket = INVALID_SOCKET;
 

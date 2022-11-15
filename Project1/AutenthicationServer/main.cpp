@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv) {
 
-	AuthServer authServer;
+	AuthServer authServer("5556");
 	DBConnector* dbconn = new DBConnector();
 	dbconn->Connect("authdb");
 
