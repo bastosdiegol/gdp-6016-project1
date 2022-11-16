@@ -13,6 +13,7 @@ public:
 //	std::map<std::string, short> m_rooms;		// Rooms joined by the user
 	std::vector<std::string>	 m_rooms;
 
+	ChatClient(const char* port="5555") : Socket::Socket(port) {}
 
 	void StartUp(const char* domain);
 	void Shutdown();

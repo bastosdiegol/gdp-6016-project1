@@ -147,10 +147,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AuthClient.h" />
     <ClInclude Include="authcomm.pb.h" />
     <ClInclude Include="ChatServer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AuthClient.cpp" />
     <ClCompile Include="authcomm.pb.cc" />
     <ClCompile Include="ChatServer.cpp" />
     <ClCompile Include="main.cpp" />

@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+#include "AuthClient.h"
 #include "Socket.h"
 #include "Buffer.h"
 #include "ChatMessageProtocol.h"
@@ -35,6 +36,8 @@ public:
 	std::vector<ChatRoom>	m_chatRooms;
 	short					m_userIdIndex;
 	std::vector<ChatUser>	m_chatUsers;
+
+	AuthClient				m_authClient;
 
 	void StartUp();
 	void Shutdown();

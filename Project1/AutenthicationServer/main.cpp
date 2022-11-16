@@ -8,7 +8,6 @@ int main(int argc, char** argv) {
 	DBConnector* dbconn = new DBConnector();
 	dbconn->Connect("authdb");
 
-
 	authServer.StartUp();
 
 

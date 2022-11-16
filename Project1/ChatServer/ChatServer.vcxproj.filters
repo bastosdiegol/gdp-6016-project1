@@ -21,6 +21,9 @@
     <ClInclude Include="authcomm.pb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AuthClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChatServer.cpp">
@@ -30,6 +33,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="authcomm.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AuthClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

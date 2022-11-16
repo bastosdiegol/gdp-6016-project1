@@ -24,6 +24,7 @@
     <ProjectGuid>{56c3fc56-3d76-49e8-9062-2168c2e1d278}</ProjectGuid>
     <RootNamespace>AutenthicationServer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>AuthenticationServer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -3,9 +3,9 @@
 
 #include <sstream>
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 #define DEBUG_LOG_ENABLED
-#endif
+//#endif
 #ifdef DEBUG_LOG_ENABLED
 #define DEBUG_PRINT(x, ...) printf(x, __VA_ARGS__)
 #else
@@ -13,6 +13,7 @@
 #endif
 
 void AuthServer::LifeCycle() {
+	DEBUG_PRINT("AuthServer::LifeCycle()\n");
 
 	ChatMessageProtocol cmp;
 	Buffer* theBuffer = new Buffer(128);
@@ -26,7 +27,6 @@ void AuthServer::LifeCycle() {
 	std::string email;
 	std::string password;
 
-	DEBUG_PRINT("ChatServer::LifeCycle()\n");
 	while (m_serverStatus) {
 		// SocketsReadyForReading will be empty here
 		FD_ZERO(&m_socketsReadyForReading);
@@ -127,7 +127,7 @@ void AuthServer::LifeCycle() {
 }
 
 void AuthServer::StartUp() {
-	DEBUG_PRINT("ChatServer::StartUp()\n");
+	DEBUG_PRINT("AuthServer::StartUp()\n");
 
 	//Socket::Initialize();
 	ServerAddrinfoSetup();
@@ -141,7 +141,7 @@ void AuthServer::StartUp() {
 }
 
 void AuthServer::Shutdown() {
-	DEBUG_PRINT("ChatServer::Shutdown()\n");
+	DEBUG_PRINT("AuthServer::Shutdown()\n");
 	m_serverStatus = false;
 }
 
@@ -155,7 +155,6 @@ bool AuthServer::AuthenticateUser(std::string email, std::string password) {
 
 // Checks if Chat Server trying to connect to the Auth server
 void AuthServer::Accept() {
-	//DEBUG_PRINT("ChatServer::Accept()\n");
 	// Check if our ListenSocket is set. This checks if there is a 
 	// new client trying to connect to the server using a "connect" 
 	// function call.
@@ -164,6 +163,7 @@ void AuthServer::Accept() {
 		if (clientSocket == INVALID_SOCKET) {
 			throw "Accept failed with error: %d\n", WSAGetLastError();
 		} else {
+			DEBUG_PRINT("AuthServer::Accept()\n");
 			// Setups Chat Server Socket
 			m_chatServerSocket = clientSocket;
 		}

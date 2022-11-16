@@ -1,8 +1,8 @@
 #include "DBConnector.h"
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 #define DEBUG_LOG_ENABLED
-#endif
+//#endif
 #ifdef DEBUG_LOG_ENABLED
 #define DEBUG_PRINT(x, ...) printf(x, __VA_ARGS__)
 #else
@@ -10,7 +10,7 @@
 #endif
 
 DBConnector::DBConnector() {
-	DEBUG_PRINT("DBConnector::DBConnector()");
+	DEBUG_PRINT("DBConnector::DBConnector()\n");
 	m_pDriver					= nullptr;
 	m_pConnection				= nullptr;
 	m_pResultSet				= nullptr;
@@ -22,12 +22,12 @@ DBConnector::DBConnector() {
 }
 
 DBConnector::~DBConnector() {
-	DEBUG_PRINT("DBConnector::~DBConnector()");
+	DEBUG_PRINT("DBConnector::~DBConnector()\n");
 	Disconnect();
 }
 
 bool DBConnector::Connect(std::string schema) {
-	DEBUG_PRINT("DBConnector::Connect(%s)", schema);
+	DEBUG_PRINT("DBConnector::Connect(%s)\n", schema);
 	// Connection call here
 	try {
 		m_pDriver = sql::mysql::get_driver_instance();
@@ -71,7 +71,7 @@ bool DBConnector::Connect(std::string schema) {
 }
 
 void DBConnector::Disconnect() {
-	DEBUG_PRINT("DBConnector::Disconnect()");
+	DEBUG_PRINT("DBConnector::Disconnect()\n");
 	try {
 		m_pConnection->close();
 	}
@@ -90,11 +90,11 @@ void DBConnector::Disconnect() {
 }
 
 sql::ResultSet* DBConnector::insertUser(std::string email, std::string salt, std::string password) {
-	DEBUG_PRINT("DBConnector::insertUser(%s, %s, %s)", email, salt, password);
+	DEBUG_PRINT("DBConnector::insertUser(%s, %s, %s)\n", email, salt, password);
 	return nullptr;
 }
 
 sql::ResultSet* DBConnector::findUserAuthData(std::string email) {
-	DEBUG_PRINT("DBConnector::findUserAuthData(%s)", email);
+	DEBUG_PRINT("DBConnector::findUserAuthData(%s)\n", email);
 	return nullptr;
 }

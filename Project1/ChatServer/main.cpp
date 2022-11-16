@@ -1,4 +1,5 @@
 #include "ChatServer.h"
+#include "AuthClient.h"
 #include "ChatMessageProtocol.h"
 #include "authcomm.pb.h"
 #include "Buffer.h"
@@ -37,6 +38,11 @@ int main(int argc, char** argv) {
 	//protoTest();
 
 	ChatServer cs;
+	AuthClient authClient("5556");
+
+	cs.m_authClient = authClient;
+	cs.m_authClient.StartUp("127.0.0.1");
+
 	cs.StartUp();
 	cs.Shutdown();
 
