@@ -24,6 +24,12 @@
     <ClCompile Include="AuthServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="csprng.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha256.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DBConnector.h">
@@ -31,6 +37,9 @@
     </ClInclude>
     <ClInclude Include="AuthServer.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sha256.h">
+      <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

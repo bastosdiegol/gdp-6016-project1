@@ -1,7 +1,10 @@
 #include "AuthServer.h"
 #include "ChatMessageProtocol.h"
 
+#include "duthomhas/csprng.h"
+
 #include <sstream>
+#include <iostream>
 
 //#ifdef _DEBUG
 #define DEBUG_LOG_ENABLED
@@ -146,6 +149,13 @@ void AuthServer::Shutdown() {
 }
 
 bool AuthServer::RegisterNewUser(std::string email, std::string password) {
+	CSPRNG rng = csprng_create();
+	if (!rng) {
+		return 1;
+	}
+	long n = csprng_get_int(rng);
+	std::cout << "Random int using CSPRNG: " << n << "\n";
+
 	return false;
 }
 

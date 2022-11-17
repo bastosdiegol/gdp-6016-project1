@@ -2,6 +2,7 @@
 #include "ChatMessageProtocol.h"
 
 #include <sstream>
+#include "authcomm.pb.h"
 
 //#ifdef _DEBUG
 #define DEBUG_LOG_ENABLED
@@ -337,6 +338,14 @@ void ChatServer::BroadcastMessage(short roomID, std::string message) {
 bool ChatServer::RegisterNewUser(std::string email, std::string password) {
 	DEBUG_PRINT("ChatServer::RegisterNewUser(%s, %s)\n", email, password);
 	// TODO: Create new ProtoMessage and attempt to register a new user
+	auth::ChatServerRequest serverRequest;
+	serverRequest.set_type(auth::ChatServerRequest::CREATEACC);
+	serverRequest.set_id(1);
+	serverRequest.set_email("bastosdiegol@gmail.com");
+	serverRequest.set_password("123456");
+
+	std::string serializedString;
+	serverRequest.SerializeToString(&serializedString);
 	return false;
 }
 
