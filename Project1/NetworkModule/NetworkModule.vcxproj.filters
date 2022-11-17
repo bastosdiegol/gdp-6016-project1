@@ -24,6 +24,9 @@
     <ClInclude Include="ChatMessageProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="authcomm.pb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Socket.cpp">
@@ -35,5 +38,13 @@
     <ClCompile Include="ChatMessageProtocol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="authcomm.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\dev\include\authcomm.proto">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

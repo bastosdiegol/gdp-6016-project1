@@ -13,6 +13,7 @@ public:
 	bool insertUser(std::string email, std::string salt, std::string password);
 	int authenticateUser(std::string email, std::string password);
 	std::string findUserSalt(std::string email);
+	int findUserId(std::string email);
 
 private:
 	sql::Driver*			m_pDriver;

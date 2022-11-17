@@ -169,3 +169,28 @@ std::string DBConnector::findUserSalt(std::string email) {
 		return "";
 	}
 }
+
+int DBConnector::findUserId(std::string email) {
+	DEBUG_PRINT("DBConnector::findUserId(%s)\n", email.c_str());
+	try {
+		// Try to find the user by email with specified hashed password
+		m_FindUserAuthDataStatement->setString(1, email);
+		m_pResultSet = m_AuthenticateUserStatement->executeQuery();
+		DEBUG_PRINT("rowsCount() find result %d\n", (int)m_pResultSet->rowsCount());
+
+		// Checks if user was found
+		if (m_pResultSet->next()) {
+			// Grabs the userid
+			int userid = m_pResultSet->getInt("user_id");
+			// Returns the userid
+			return userid;
+		} else {
+			// User not found, returns -1
+			return -1;
+		}
+	}
+	catch (sql::SQLException e) {
+		DEBUG_PRINT("Failed to add a user to our database: %s\n", e.what());
+		return -1;
+	}
+}

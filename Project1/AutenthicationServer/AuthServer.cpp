@@ -1,7 +1,6 @@
 #include "AuthServer.h"
 #include "ChatMessageProtocol.h"
-
-#include "duthomhas/csprng.h"
+#include "authcomm.pb.h"
 
 #include <sstream>
 #include <iostream>
@@ -17,6 +16,16 @@
 
 void AuthServer::LifeCycle() {
 	DEBUG_PRINT("AuthServer::LifeCycle()\n");
+
+	dbconn = new DBConnector();
+	dbconn->Connect("authdb");
+
+	// Random salt generator
+	rng = csprng_create();
+	if (!rng) {
+		DEBUG_PRINT("Error creating CSPRNG. Exiting application.");
+		return;
+	}
 
 	ChatMessageProtocol cmp;
 	Buffer* theBuffer = new Buffer(128);
@@ -80,46 +89,69 @@ void AuthServer::LifeCycle() {
 			theBuffer->m_ReadBufferIndex = 0;
 			// Reads the size of the buffer
 			msgBufLen = theBuffer->ReadUInt32BE();
-			// Reads the type of the message
-			msgType = theBuffer->ReadShort16BE();
-			// Variable utilized for response when needed
-			char* responseBuf;
+			// Reads the proto message
+			message = theBuffer->ReadStringBE(msgBufLen);
+
+			auth::ChatServerRequest serverRequest;
+			bool result = serverRequest.ParseFromString(message);
+			if (!result) {
+				DEBUG_PRINT("Failed to parse server request");
+				continue;
+			}
+			msgType = serverRequest.type();
 
 			switch (msgType) {
-			case ChatMessageProtocol::MESSAGE_TYPE::REGISTER:
+			case auth::ChatServerRequest::CREATEACC : //ChatMessageProtocol::MESSAGE_TYPE::REGISTER:
 			{
-				email = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
-				std::stringstream ss(email);
-				std::getline(ss, email, ' ');
-				std::getline(ss, password);
-				this->RegisterNewUser(email, password);
-				// ----------
-				// TODO: Treatment of RegisterNewUser return and feedback to the user trying to register
-				//message = "Could not register new user.";
-				msgBufLen = 6;
-				Buffer respBuff(msgBufLen);
-				respBuff.WriteInt32BE(msgBufLen);
-				respBuff.WriteShort16BE(-1);
-				//respBuff.WriteStringBE(message);
-				responseBuf = (char*)&respBuff.m_BufferData[0];
-				send(m_chatServerSocket, responseBuf, respBuff.m_BufferSize, 0);
+				auth::AuthServerResponse authResponse;
+				authResponse.set_id(serverRequest.id());
+				// Tries to insert the user on the database
+				// RegisterNewUser will properly create Salt and Hash the password
+				bool registerResponse = RegisterNewUser(serverRequest.email(), serverRequest.password());
+				// Sets the Type of AuthServer Response based on the DB return
+				if (registerResponse == true) {
+					authResponse.set_type(auth::AuthServerResponse_ResponseType_ACCCREATED);
+					// Grabs the new userid
+					authResponse.set_userid(dbconn->findUserId(serverRequest.email()));
+				} else {
+					authResponse.set_type(auth::AuthServerResponse_ResponseType_ACCEXISTS);
+				}
+
+				std::string serializedString;
+				authResponse.SerializeToString(&serializedString);
+				
+				Buffer respBuff(4);
+				// Writes the buffer size
+				respBuff.WriteInt32BE(serializedString.size());
+				respBuff.WriteStringBE(serializedString);
+				// Sends the response to the ChatServer
+				send(m_chatServerSocket, (char*)&respBuff.m_BufferData[0], respBuff.m_BufferSize, 0);
 				break;
 			}
-			case ChatMessageProtocol::MESSAGE_TYPE::LOGIN:
+			case auth::ChatServerRequest::AUTHENTICATE : //ChatMessageProtocol::MESSAGE_TYPE::LOGIN:
 			{
-				email = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
-				std::stringstream ss(email);
-				std::getline(ss, email, ' ');
-				std::getline(ss, password);
-				this->AuthenticateUser(email, password);
-				// ----------
-				// TODO: Treatment of RegisterNewUser return and feedback to the user trying to login
-				//message = "Could not authenticate new user.";
-				msgBufLen = 6;
-				Buffer respBuff(msgBufLen);
-				respBuff.WriteInt32BE(msgBufLen);
-				respBuff.WriteShort16BE(-1);
-				//responseBuf = (char*)&respBuff.m_BufferData[0];
+				auth::AuthServerResponse authResponse;
+				authResponse.set_id(serverRequest.id());
+				// Tries to insert the user on the database
+				// RegisterNewUser will properly create Salt and Hash the password
+				bool registerResponse = AuthenticateUser(serverRequest.email(), serverRequest.password());
+				// Sets the Type of AuthServer Response based on the DB return
+				if (registerResponse == true) {
+					authResponse.set_type(auth::AuthServerResponse_ResponseType_AUTHSUCCESS);
+					// Grabs the userid
+					authResponse.set_userid(dbconn->findUserId(serverRequest.email()));
+				} else {
+					authResponse.set_type(auth::AuthServerResponse_ResponseType_AUTHFAILURE);
+				}
+
+				std::string serializedString;
+				authResponse.SerializeToString(&serializedString);
+
+				Buffer respBuff(4);
+				// Writes the buffer size
+				respBuff.WriteInt32BE(serializedString.size());
+				respBuff.WriteStringBE(serializedString);
+				// Sends the response to the ChatServer
 				send(m_chatServerSocket, (char*)&respBuff.m_BufferData[0], respBuff.m_BufferSize, 0);
 				break;
 			}
@@ -127,6 +159,8 @@ void AuthServer::LifeCycle() {
 		}
 	}
 	Socket::Close();
+	delete dbconn;
+	delete rng;
 }
 
 void AuthServer::StartUp() {
@@ -149,18 +183,30 @@ void AuthServer::Shutdown() {
 }
 
 bool AuthServer::RegisterNewUser(std::string email, std::string password) {
-	CSPRNG rng = csprng_create();
-	if (!rng) {
-		return 1;
-	}
-	long n = csprng_get_int(rng);
-	std::cout << "Random int using CSPRNG: " << n << "\n";
 
-	return false;
+	// Creates new salt
+	long salt = csprng_get_int(rng);
+	// Appends salt to the password
+	std::string newPassword = std::to_string(salt).append(password);
+	// Hashes new salted password
+	std::string hashedPasswordToString = sha256(newPassword);
+
+	return dbconn->insertUser(email, std::to_string(salt), hashedPasswordToString);
 }
 
-bool AuthServer::AuthenticateUser(std::string email, std::string password) {
-	return false;
+int AuthServer::AuthenticateUser(std::string email, std::string password) {
+
+	std::string salt = dbconn->findUserSalt(email);
+	if (salt == "") {
+		return false;
+	}
+	// Appends salt to the password
+	std::string newPassword = salt.append(password);
+	// Hashes salted password
+	std::string hashedPasswordToString = sha256(newPassword);
+
+	return dbconn->authenticateUser(email, hashedPasswordToString);
+
 }
 
 // Checks if Chat Server trying to connect to the Auth server
