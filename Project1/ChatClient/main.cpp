@@ -66,7 +66,6 @@ int main(int argc, char** argv) {
 		send(cc.m_socket, buf, theBuffer->m_BufferSize, 0);
 		result = 1;
 		while (result > 0) {
-			std::cout << "result = " << result << std::endl;
 			// Receives server response for autenthication
 			int result = recv(cc.m_socket, buf, bufLen, 0);
 			if (result == SOCKET_ERROR) {
@@ -117,34 +116,15 @@ int main(int argc, char** argv) {
 	//// Sends the username to the server
 	//send(cc.m_socket, buf, bufLen, 0);
 
-	// Tries to receive the User ID from the ChatServer
-	while (tryAgain) {
-		int userid = recv(cc.m_socket, buf, bufLen, 0);
-		if (userid == SOCKET_ERROR) {
-			if (WSAGetLastError() == WSAEWOULDBLOCK) {
-			} else {
-				printf("recv failed with error: %d\n", WSAGetLastError());
-				closesocket(cc.m_socket);
-				WSACleanup();
-				return 1;
-			}
-		} else {
-			// Copies the buffer received to the class Buffer
-			theBuffer->m_BufferData = std::vector<uint8_t>(&buf[0], &buf[bufLen]);
-			// Reads the userid
-			userid = theBuffer->ReadShort16BE();
-			cc.m_id = userid;
-			// Welcoming messages displayed in the console
-			messageHistory << "\033[2J\033[1;1H"; // Clear Screen
-			messageHistory << "Type /join roomname to enter a room." << std::endl;
-			messageHistory << "Type /leave roomname to enter a room." << std::endl;
-			messageHistory << "Type /quit to leave the server." << std::endl;
-			messageHistory << "Type /roomname message to broadcast a message to the room." << std::endl;
+	// Welcoming messages displayed in the console
+	messageHistory << "\033[2J\033[1;1H"; // Clear Screen
+	messageHistory << "Type /join roomname to enter a room." << std::endl;
+	messageHistory << "Type /leave roomname to enter a room." << std::endl;
+	messageHistory << "Type /quit to leave the server." << std::endl;
+	messageHistory << "Type /roomname message to broadcast a message to the room." << std::endl;
 			
-			std::cout << messageHistory.str();
-			tryAgain = false;
-		}
-	}
+	std::cout << messageHistory.str();
+	tryAgain = false;
 	// **********
 	// 
 	//	Main Loop

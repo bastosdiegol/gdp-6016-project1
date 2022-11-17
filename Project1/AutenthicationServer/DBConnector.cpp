@@ -142,7 +142,7 @@ int DBConnector::authenticateUser(std::string email, std::string password) {
 		}
 	}
 	catch (sql::SQLException e) {
-		DEBUG_PRINT("Failed to add a user to our database: %s\n", e.what());
+		DEBUG_PRINT("Failed to authenticate a user: %s\n", e.what());
 		return -1;
 	}
 }
@@ -165,7 +165,7 @@ std::string DBConnector::findUserSalt(std::string email) {
 		}
 	}
 	catch (sql::SQLException e) {
-		DEBUG_PRINT("Failed to add a user to our database: %s\n", e.what());
+		DEBUG_PRINT("Failed to find user salt: %s\n", e.what());
 		return "";
 	}
 }
@@ -175,7 +175,7 @@ int DBConnector::findUserId(std::string email) {
 	try {
 		// Try to find the user by email with specified hashed password
 		m_FindUserAuthDataStatement->setString(1, email);
-		m_pResultSet = m_AuthenticateUserStatement->executeQuery();
+		m_pResultSet = m_FindUserAuthDataStatement->executeQuery();
 		DEBUG_PRINT("rowsCount() find result %d\n", (int)m_pResultSet->rowsCount());
 
 		// Checks if user was found
@@ -190,7 +190,7 @@ int DBConnector::findUserId(std::string email) {
 		}
 	}
 	catch (sql::SQLException e) {
-		DEBUG_PRINT("Failed to add a user to our database: %s\n", e.what());
+		DEBUG_PRINT("Failed to find a user on our database: %s\n", e.what());
 		return -1;
 	}
 }

@@ -67,7 +67,7 @@ public:
 	/// <param name="email">Receives user email</param>
 	/// <param name="password">Receives user password</param>
 	/// <returns>Returns </returns>
-	bool RegisterNewUser(std::string email, std::string password);
+	bool RegisterNewUser(ChatUser* user, std::string email, std::string password);
 	bool AuthenticateUser(std::string email, std::string password);
 };
 
