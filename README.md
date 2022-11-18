@@ -1,4 +1,4 @@
-# Network Programming Project #1: Chat Program
+# Network Programming Project #2: Authentication Service
 
 This solution was created using Visual Studio Community 2019 Version 16 Toolset v142.
 
@@ -18,3 +18,7 @@ These are the user inputs expected during the use of the chat client:
 - Type /quit to leave the server.
 - Type /roomname message to broadcast a message to the room.
 - Press ESC or BS to clear the message box.
+
+Known issues:
+- On Sing In, currently there's a bug on the socket communication flow that requires more than 1 attempt to receive the correct response from the server.
+- While it's not fixed you can follow Debug messages to see that the Server is ready to authenticate a user even though on a later try.

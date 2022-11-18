@@ -384,7 +384,7 @@ bool ChatServer::RegisterNewUser(ChatUser* user, std::string email, std::string 
 			std::string message = theBuffer.ReadStringBE(packSize);
 			bool result = authResponse.ParseFromString(message);
 			if (!result) {
-				DEBUG_PRINT("Failed to parse server request");
+				DEBUG_PRINT("Failed to parse server request\n");
 				continue;
 			}
 			short msgType = serverRequest.type();
@@ -450,12 +450,12 @@ bool ChatServer::AuthenticateUser(ChatUser* user, std::string email, std::string
 			std::string message = theBuffer.ReadStringBE(packSize);
 			bool result = authResponse.ParseFromString(message);
 			if (!result) {
-				DEBUG_PRINT("Failed to parse server request");
+				DEBUG_PRINT("Failed to parse server request\n");
 				continue;
 			}
 			short msgType = authResponse.type();
 			// Switch to verify if the user was created or if it already exists on the DB
-			DEBUG_PRINT("Message Type from AuthResponse: %d", msgType);
+			DEBUG_PRINT("Message Type from AuthResponse: %d\n", msgType);
 			switch (msgType) {
 			case auth::AuthServerResponse_ResponseType_AUTHSUCCESS:
 				user->id = authResponse.userid();

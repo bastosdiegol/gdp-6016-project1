@@ -23,7 +23,7 @@ void AuthServer::LifeCycle() {
 	// Random salt generator
 	rng = csprng_create();
 	if (!rng) {
-		DEBUG_PRINT("Error creating CSPRNG. Exiting application.");
+		DEBUG_PRINT("Error creating CSPRNG. Exiting application.\n");
 		return;
 	}
 
@@ -95,7 +95,7 @@ void AuthServer::LifeCycle() {
 			auth::ChatServerRequest serverRequest;
 			bool result = serverRequest.ParseFromString(message);
 			if (!result) {
-				DEBUG_PRINT("Failed to parse server request");
+				DEBUG_PRINT("Failed to parse server request\n");
 				continue;
 			}
 			msgType = serverRequest.type();
