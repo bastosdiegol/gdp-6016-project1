@@ -66,8 +66,15 @@ public:
 	/// </summary>
 	/// <param name="email">Receives user email</param>
 	/// <param name="password">Receives user password</param>
-	/// <returns>Returns </returns>
+	/// <returns>Returns True if user was registred</returns>
 	bool RegisterNewUser(ChatUser* user, std::string email, std::string password);
-	bool AuthenticateUser(std::string email, std::string password);
+	/// <summary>
+	/// Sends a protoMessage to Auth Server
+	/// To authenticate a user
+	/// </summary>
+	/// <param name="email">Receives user email</param>
+	/// <param name="password">Receives user password</param>
+	/// <returns>Returns true if user is authenticated</returns>
+	bool AuthenticateUser(ChatUser* user, std::string email, std::string password);
 };
 

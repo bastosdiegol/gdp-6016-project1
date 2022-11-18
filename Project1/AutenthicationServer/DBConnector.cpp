@@ -27,7 +27,7 @@ DBConnector::~DBConnector() {
 }
 
 bool DBConnector::Connect(std::string schema) {
-	DEBUG_PRINT("DBConnector::Connect(%s)\n", schema);
+	DEBUG_PRINT("DBConnector::Connect(%s)\n", schema.c_str());
 	// Connection call here
 	try {
 		m_pDriver = sql::mysql::get_driver_instance();
@@ -148,7 +148,7 @@ int DBConnector::authenticateUser(std::string email, std::string password) {
 }
 
 std::string DBConnector::findUserSalt(std::string email) {
-	DEBUG_PRINT("DBConnector::findUserAuthData(%s)\n", email);
+	DEBUG_PRINT("DBConnector::findUserAuthData(%s)\n", email.c_str());
 	try {
 		// Tries to find the user
 		m_FindUserAuthDataStatement->setString(1, email);

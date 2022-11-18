@@ -131,7 +131,8 @@ void ChatServer::LifeCycle() {
 					}
 				case ChatMessageProtocol::MESSAGE_TYPE::REGISTER :
 					{
-						email = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					// Reads the email + " " + password { 6 = 4 (buflen) + email + ' ' + password ... }
+						email = theBuffer->ReadStringBE(msgBufLen + 1 - 6); 
 						std::stringstream ss(email);
 						std::getline(ss, email, ' ');
 						std::getline(ss, password);
@@ -151,19 +152,21 @@ void ChatServer::LifeCycle() {
 					}
 				case ChatMessageProtocol::MESSAGE_TYPE::LOGIN :
 					{
-						email = theBuffer->ReadStringBE(msgBufLen + 1 - 6); // Reads the roomname + " " + message { 6 = 4 (buflen) + 2 (msgtype) ... roomname ... }
+					// Reads the email + " " + password { 6 = 4 (buflen) + email + ' ' + password ... }
+						email = theBuffer->ReadStringBE(msgBufLen + 1 - 6); 
 						std::stringstream ss(email);
 						std::getline(ss, email, ' ');
 						std::getline(ss, password);
-						this->AuthenticateUser(email, password);
-						// ----------
-						// TODO: Treatment of RegisterNewUser return and feedback to the user trying to login
-						//message = "Could not authenticate new user.";
+						bool bAccAuth = this->AuthenticateUser(&m_chatUsers[i], email, password);
+						
 						msgBufLen = 6;
 						Buffer respBuff(msgBufLen);
 						respBuff.WriteInt32BE(msgBufLen);
-						respBuff.WriteShort16BE(-1);
-						//responseBuf = (char*)&respBuff.m_BufferData[0];
+						if (bAccAuth) {
+							respBuff.WriteShort16BE(m_chatUsers[i].id);
+						} else {
+							respBuff.WriteShort16BE(-1);
+						}
 						send(m_chatUsers[i].userSocket, (char*)&respBuff.m_BufferData[0], respBuff.m_BufferSize, 0);
 						break;
 					}
@@ -337,27 +340,27 @@ void ChatServer::BroadcastMessage(short roomID, std::string message) {
 }
 
 bool ChatServer::RegisterNewUser(ChatUser* user, std::string email, std::string password) {
-	DEBUG_PRINT("ChatServer::RegisterNewUser(%s, %s)\n", email, password);
-	// TODO: Create new ProtoMessage and attempt to register a new user
+	DEBUG_PRINT("ChatServer::RegisterNewUser(%s, %s)\n", email.c_str(), password.c_str());
+	// Creates the Protobuff Request
 	auth::ChatServerRequest serverRequest;
 	serverRequest.set_type(auth::ChatServerRequest::CREATEACC);
 	serverRequest.set_id(user->id);
 	serverRequest.set_email(email);
 	serverRequest.set_password(password);
-
+	// Serialize it
 	std::string serializedString;
 	serverRequest.SerializeToString(&serializedString);
-
-	Buffer responseBuffer(4);
-	responseBuffer.WriteInt32BE(serializedString.size());
-	responseBuffer.WriteStringBE(serializedString);
-
-	send(m_authClient.m_socket, (char*)&responseBuffer.m_BufferData[0], responseBuffer.m_BufferSize, 0);
+	// Adds it to the Buffer with its size as header
+	Buffer theBuffer(4);
+	theBuffer.WriteInt32BE(serializedString.size());
+	theBuffer.WriteStringBE(serializedString);
+	// Sends to the AuthServer
+	send(m_authClient.m_socket, (char*)&theBuffer.m_BufferData[0], theBuffer.m_BufferSize, 0);
 
 	int result = -1;
 	int	bufLen = 128;
 	char* buf = new char[bufLen];
-
+	// Wait to AuthServer Response
 	do {
 		// Receives server response for autenthication
 		int result = recv(m_authClient.m_socket, buf, bufLen, 0);
@@ -371,21 +374,21 @@ bool ChatServer::RegisterNewUser(ChatUser* user, std::string email, std::string 
 			}
 		} else {
 			// Copies the buffer received to the class Buffer
-			responseBuffer.m_BufferData.resize(result);
-			responseBuffer.m_BufferSize = result;
-			responseBuffer.m_BufferData = std::vector<uint8_t>(&buf[0], &buf[result]);
-			responseBuffer.m_ReadBufferIndex = 0;
+			theBuffer.m_BufferData.resize(result);
+			theBuffer.m_BufferSize = result;
+			theBuffer.m_BufferData = std::vector<uint8_t>(&buf[0], &buf[result]);
+			theBuffer.m_ReadBufferIndex = 0;
 			// Reads pack size
-			int packSize = responseBuffer.ReadUInt32BE();
+			int packSize = theBuffer.ReadUInt32BE();
 			auth::AuthServerResponse authResponse;
-			std::string message = responseBuffer.ReadStringBE(packSize);
+			std::string message = theBuffer.ReadStringBE(packSize);
 			bool result = authResponse.ParseFromString(message);
 			if (!result) {
 				DEBUG_PRINT("Failed to parse server request");
 				continue;
 			}
 			short msgType = serverRequest.type();
-
+			// Switch to verify if the user was created or if it already exists on the DB
 			switch (msgType) {
 			case auth::AuthServerResponse_ResponseType_ACCCREATED :
 				user->id = authResponse.userid();
@@ -402,9 +405,70 @@ bool ChatServer::RegisterNewUser(ChatUser* user, std::string email, std::string 
 	return false;
 }
 
-bool ChatServer::AuthenticateUser(std::string email, std::string password) {
-	DEBUG_PRINT("ChatServer::AuthenticateUser(%s, %s)\n", email, password);
-	// TODO: Create new ProtoMessage and attempt to login a new user
+bool ChatServer::AuthenticateUser(ChatUser* user, std::string email, std::string password) {
+	DEBUG_PRINT("ChatServer::AuthenticateUser(%s, %s)\n", email.c_str(), password.c_str());
+	// Creates the Protobuff Request
+	auth::ChatServerRequest serverRequest;
+	serverRequest.set_type(auth::ChatServerRequest::AUTHENTICATE);
+	serverRequest.set_id(user->id);
+	serverRequest.set_email(email);
+	serverRequest.set_password(password);
+	// Serialize it
+	std::string serializedString;
+	serverRequest.SerializeToString(&serializedString);
+	// Adds it to the Buffer with its size as header
+	Buffer theBuffer(4);
+	theBuffer.WriteInt32BE(serializedString.size());
+	theBuffer.WriteStringBE(serializedString);
+	// Sends to the AuthServer
+	send(m_authClient.m_socket, (char*)&theBuffer.m_BufferData[0], theBuffer.m_BufferSize, 0);
+
+	int result = -1;
+	int	bufLen = 128;
+	char* buf = new char[bufLen];
+	// Wait to AuthServer Response
+	do {
+		// Receives server response for autenthication
+		int result = recv(m_authClient.m_socket, buf, bufLen, 0);
+		if (result == SOCKET_ERROR) {
+			if (WSAGetLastError() == WSAEWOULDBLOCK) {
+			} else {
+				printf("recv failed with error: %d\n", WSAGetLastError());
+				closesocket(m_authClient.m_socket);
+				WSACleanup();
+				return false;
+			}
+		} else if(result > 0) {
+			// Copies the buffer received to the class Buffer
+			theBuffer.m_BufferData.resize(result);
+			theBuffer.m_BufferSize = result;
+			theBuffer.m_BufferData = std::vector<uint8_t>(&buf[0], &buf[result]);
+			theBuffer.m_ReadBufferIndex = 0;
+			// Reads pack size
+			int packSize = theBuffer.ReadUInt32BE();
+			auth::AuthServerResponse authResponse;
+			std::string message = theBuffer.ReadStringBE(packSize);
+			bool result = authResponse.ParseFromString(message);
+			if (!result) {
+				DEBUG_PRINT("Failed to parse server request");
+				continue;
+			}
+			short msgType = authResponse.type();
+			// Switch to verify if the user was created or if it already exists on the DB
+			DEBUG_PRINT("Message Type from AuthResponse: %d", msgType);
+			switch (msgType) {
+			case auth::AuthServerResponse_ResponseType_AUTHSUCCESS:
+				user->id = authResponse.userid();
+				return true;
+				break;
+			case auth::AuthServerResponse_ResponseType_AUTHFAILURE:
+				DEBUG_PRINT("Could not authenticate or register\n");
+				return false;
+				break;
+			}
+		}
+	} while (result > 0);
+
 	return false;
 }
 

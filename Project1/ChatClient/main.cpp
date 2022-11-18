@@ -64,8 +64,8 @@ int main(int argc, char** argv) {
 		//bufLen = theBuffer->m_BufferSize;
 		// Sends the message to the server
 		send(cc.m_socket, buf, theBuffer->m_BufferSize, 0);
-		result = 1;
-		while (result > 0) {
+		result = -1;
+		do {
 			// Receives server response for autenthication
 			int result = recv(cc.m_socket, buf, bufLen, 0);
 			if (result == SOCKET_ERROR) {
@@ -96,9 +96,8 @@ int main(int argc, char** argv) {
 					loggedIn = true;
 					break;
 				}
-			}
-		}
-		
+			} 
+		} while (result > 0);
 	}
 	//// Beginning of the Program - Ask username
 	//std::cout << "Enter your username: ";
